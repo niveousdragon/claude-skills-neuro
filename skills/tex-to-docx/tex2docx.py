@@ -547,6 +547,68 @@ def number_equations(tex_text):
     return tex_text
 
 
+def materialise_nomenclature(tex_text, source=""):
+    r"""Build the list of abbreviations that ``\printnomenclature`` would print.
+
+    The ``nomencl`` package collects ``\nomenclature{term}{definition}`` entries
+    scattered through the document and typesets them where ``\printnomenclature``
+    sits. Pandoc knows neither command, so the whole section — in a thesis, every
+    abbreviation the reader needs — silently vanishes from the .docx. The entries
+    are in the source, so emit them as a definition list instead.
+
+    Same class of problem as ``glossaries``/``acronym``/``makeindex``: a package
+    that *generates* content at typeset time produces nothing under pandoc.
+    """
+    entries = []
+    out, i = [], 0
+    token = "\\nomenclature"
+    while True:
+        j = tex_text.find(token, i)
+        if j == -1:
+            out.append(tex_text[i:])
+            break
+        out.append(tex_text[i:j])
+        k = j + len(token)
+        sort_key = ""
+        if k < len(tex_text) and tex_text[k] == "[":       # optional sort key
+            end = tex_text.find("]", k)
+            sort_key = tex_text[k + 1:end]
+            k = end + 1
+        args = []
+        for _ in range(2):
+            while k < len(tex_text) and tex_text[k] in " \t\n":
+                k += 1
+            if k < len(tex_text) and tex_text[k] == "{":
+                end = _match_group(tex_text, k)
+                args.append(tex_text[k + 1:end - 1])
+                k = end
+        if len(args) == 2:
+            entries.append((sort_key, args[0], args[1]))
+        i = k
+    tex_text = "".join(out)
+
+    if not entries:
+        return tex_text
+
+    m = re.search(r"\\renewcommand\*?\{\\nomname\}\{([^}]*)\}", source)
+    title = m.group(1) if m else "Nomenclature"
+    entries.sort(key=lambda e: e[0])                       # the key LaTeX sorts on
+    items = "\n".join(rf"\item[{term}] {definition}" for _, term, definition in entries)
+    block = (f"\\section*{{{title}}}\n"
+             f"\\begin{{description}}\n{items}\n\\end{{description}}\n")
+
+    if re.search(r"\\printnomenclature", tex_text):
+        # lambda replacement: `block` is full of backslashes that re.sub would
+        # otherwise read as escape sequences.
+        tex_text = re.sub(r"\\printnomenclature(\[[^\]]*\])?",
+                          lambda _m: block, tex_text, count=1)
+    else:                                                  # no print command: append
+        tex_text = tex_text.replace(r"\end{document}",
+                                    block + "\\end{document}", 1)
+    print(f"nomenclature: {len(entries)} entries materialised as '{title}'")
+    return tex_text
+
+
 def clean_bib(bib_path, work_dir):
     r"""Copy a .bib with ``%``-commented lines removed.
 
@@ -754,12 +816,16 @@ def convert(tex_path, output=None, bib=None, csl=None, dpi=300, keep_clean=False
               f"({n_files} direct references), minimal preamble substituted")
     else:
         clean = strip_comments(raw)
+    # The whole source, \input chain included: some things a rule needs to know
+    # (the document language, \nomname) live in a file the master only includes.
+    expanded = expand_inputs(raw, tex_dir)
+    clean = materialise_nomenclature(clean, expanded)
     clean = relocate_caption_labels(clean)
     clean = number_equations(clean)
     # The <<…>> ligature only exists for certain languages; look for it in the
     # *original* source (with its \input chain), since flattening throws the
     # template preamble — and its \usepackage[russian]{babel} — away.
-    if uses_guillemet_ligature(expand_inputs(raw, tex_dir)):
+    if uses_guillemet_ligature(expanded):
         clean = convert_guillemets(clean)
     clean = ensure_references_heading(clean, refs_title)
 

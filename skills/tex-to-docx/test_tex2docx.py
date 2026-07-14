@@ -8,7 +8,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from tex2docx import (convert_guillemets, uses_guillemet_ligature,
-                      number_equations, needs_flattening)
+                      number_equations, needs_flattening,
+                      materialise_nomenclature)
 
 ok = True
 
@@ -65,6 +66,19 @@ check('starred equation NOT numbered', '\\qquad(' not in out, True)
 out = number_equations(r'\begin{align}x&=1\nonumber\\ y&=2\label{eq:c}\end{align}'
                        + r'ref \eqref{eq:c}')
 check('\\nonumber row skipped, next row is (1)', 'ref (1)' in out, True)
+
+print('\n--- package-generated content must be materialised ---')
+src = r'\renewcommand{\nomname}{Список сокращений}'
+out = materialise_nomenclature(
+    r'\nomenclature[A GCMI]{GCMI}{Gaussian Copula MI}'
+    r'\nomenclature[A z_01]{ВИ}{взаимная информация}'
+    r'\printnomenclature[3.5cm]', src)
+check('entries survive \\printnomenclature',
+      'GCMI' in out and 'взаимная информация' in out, True)
+check('heading taken from \\nomname', 'Список сокращений' in out, True)
+check('sorted by the LaTeX sort key (GCMI before ВИ)',
+      out.index('GCMI') < out.index('ВИ'), True)
+check('raw \\nomenclature commands removed', '\\nomenclature' not in out, True)
 
 print('\n--- flatten auto-detection ---')
 check('thesis (preamble \\input + body \\include) -> flatten',
