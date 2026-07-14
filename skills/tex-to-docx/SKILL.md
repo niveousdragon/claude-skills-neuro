@@ -116,7 +116,7 @@ What is carried across, and what is deliberately not:
    `\nomname`. **Watch for the same trap** with `glossaries`, `acronym` and
    `makeindex`: anything a package *generates* at typeset time produces nothing
    under pandoc — check that such a section survived before shipping.
-7. **Self-verifies.** After conversion it reports embedded media count, inline
+8. **Self-verifies.** After conversion it reports embedded media count, inline
    image references, and native-equation count so you can confirm nothing dropped.
 
 ## Requirements
