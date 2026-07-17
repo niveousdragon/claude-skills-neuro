@@ -53,7 +53,7 @@
 Claude Code.
 
 **Проверка:** спроси «Какие скиллы тебе доступны?» — в списке должны быть
-`deep-analysis`, `figure-alignment`, `tex-to-docx`, скиллы из `superpowers`,
+`deep-analysis`, `figure-alignment`, `tex-to-docx`, `share-figure`, скиллы из `superpowers`,
 команды `/ars-*` и `skill-creator`.
 
 ---

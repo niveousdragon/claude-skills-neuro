@@ -29,7 +29,7 @@
 
 ### Шаг A. Кастомные скиллы из репозитория
 
-В `skills/` лежат `deep-analysis`, `figure-alignment` и `tex-to-docx`. Их нужно
+В `skills/` лежат `deep-analysis`, `figure-alignment`, `tex-to-docx` и `share-figure`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -44,8 +44,8 @@
   инструментами. Результат тот же — это всего лишь копирование папок.
 
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
-`figure-alignment/` и `tex-to-docx/`, в каждой есть `SKILL.md` (в `tex-to-docx/`
-рядом с ним — `tex2docx.py`).
+`figure-alignment/`, `tex-to-docx/` и `share-figure/`, в каждой есть `SKILL.md`
+(в `tex-to-docx/` рядом с ним — `tex2docx.py`).
 
 **Внешняя зависимость (только для `tex-to-docx`).** Этому скиллу нужен `pandoc` —
 без него он не работает вообще. Проверь `pandoc --version`; если его нет, скажи
@@ -105,18 +105,19 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все шесть:
+все семь:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
 | `deep-analysis` | `~/.claude/skills/deep-analysis/SKILL.md` | папка на месте |
 | `figure-alignment` | `~/.claude/skills/figure-alignment/SKILL.md` | папка на месте |
 | `tex-to-docx` | `~/.claude/skills/tex-to-docx/SKILL.md` | папка на месте, рядом `tex2docx.py` |
+| `share-figure` | `~/.claude/skills/share-figure/SKILL.md` | папка на месте |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все шесть
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все семь
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -139,6 +140,10 @@ Code. **Ты, скорее всего, не можешь выполнить их
   журнала: картинки (включая векторные PDF/EPS), формулы, таблицы, цитаты и
   кросс-ссылки сохраняются, а комментарии и черновые пометки в файл не попадают.
   Нужен `pandoc`; конвертер лежит рядом со `SKILL.md`.
+- **`share-figure`** — собрать фигуру для отправки коллеге/рецензенту так, чтобы её
+  можно было воспроизвести: картинка + генерирующий код + ровно нужные данные +
+  provenance; «готово» = чистая копия бандла воспроизводит фигуру, а не «скрипт
+  запустился».
 
 ### Из `superpowers`
 - `brainstorming` — перед новой разработкой, разложить замысел до кода.
