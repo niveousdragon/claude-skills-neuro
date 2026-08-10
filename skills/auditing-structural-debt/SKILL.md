@@ -165,6 +165,17 @@ Work through all six phases. Skipping phase 3 or 6 is what produced the baseline
 
 ### 1. Orient
 
+**Establish which code you are auditing, before anything else.** A checkout is not automatically
+the code that ships. Compare the working tree against the branch that releases: `git status`, the
+version field in the manifest, and `git rev-list --count HEAD..origin/main`. State the answer in
+the report, and stamp every finding with whether it survives on the release ref. In testing, an
+audit ran against a feature branch 73 commits and two minor versions behind the release branch;
+one of its top findings had already been fixed upstream and nobody noticed until a late probe
+checked. If the gap is more than a handful of commits, audit the release ref directly rather than
+the checkout — `git show <ref>:<path>` and `git grep <pat> <ref> -- <path>` need no checkout and
+mutate nothing. (On Windows, prefix those with `MSYS_NO_PATHCONV=1` or the shell mangles the
+colon.)
+
 Read the ledger if one exists — its open entries are your starting frontier, and you must report
 their current status (`fixed`, `worse`, still `open`) before adding anything new. Read the
 project's own contracts: CLAUDE.md/AGENTS.md, ARCHITECTURE, CONVENTIONS, schema files, ADRs. These
@@ -205,7 +216,12 @@ Read it for what attention alone cannot give you:
   that. Measured on two projects, the curated one's *median* month barely beat the uncurated one's
   — the spikes were the whole difference. A level alone will mislead you; the shape will not.
 - **churn × size** is where debt actually costs money. A 3000-line file nobody touches is not
-  urgent; a 900-line file touched weekly is.
+  urgent; a 900-line file touched weekly is. **Check the commit dates before trusting the
+  rank.** Churn counts commits, so a file produced in a burst — one commit per generated
+  unit — ranks as a hotspot without being unstable. Measured: the top-ranked file in one
+  audit had 200 commits, 194 of them on two consecutive days and six across the three
+  months since. Sustained churn means the design is unsettled; burst churn means someone
+  ran a generator. Only the first is debt.
 - **cross-boundary co-change** finds leaky seams a clean import graph hides. If `core/x.py` and
   `web/app.py` change together in 66% of commits, the boundary between them is decorative.
 

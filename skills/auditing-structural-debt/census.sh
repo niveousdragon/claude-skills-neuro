@@ -3,16 +3,21 @@
 # Produces the evidence a structural-debt audit reasons from. Reads only; never writes.
 #
 #   sh census.sh [--since "6 months ago"] [--src PREFIX] [--ext "py,js,ts,go,rs"]
+#                [--exclude "vendor/**,third_party/**"]
+#
+# --exclude takes comma-separated git pathspecs. Use it for vendored or generated code:
+# code you did not write distorts scale, hotspots and duplication, and auditing it is waste.
 #
 # Requires: git, awk, sort, grep, sed. Degrades outside a git repo (skips history sections).
 # Every section is bounded — this is meant to fit in an agent's context.
 
-SINCE="6 months ago"; SRC=""; EXT=""
+SINCE="6 months ago"; SRC=""; EXT=""; EXCL=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --since) SINCE="$2"; shift 2 ;;
     --src)   SRC="$2";   shift 2 ;;
     --ext)   EXT="$2";   shift 2 ;;
+    --exclude) EXCL="$2"; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
@@ -33,8 +38,12 @@ set --
 for e in $(echo "$EXT" | tr ',' ' '); do
   if [ -n "$SRC" ]; then set -- "$@" "$SRC/*.$e"; else set -- "$@" "*.$e"; fi
 done
+EXPS=""
+if [ -n "$EXCL" ]; then
+  for x in $(echo "$EXCL" | tr ',' ' '); do set -- "$@" ":(exclude)$x"; EXPS="$EXPS :(exclude)$x"; done
+fi
 
-echo "### structural census | ext=$EXT | since=$SINCE ${SRC:+| src=$SRC}"
+echo "### structural census | ext=$EXT | since=$SINCE ${SRC:+| src=$SRC}${EXCL:+ | excluded=$EXCL}"
 echo
 
 echo "== 1. SCALE (lines per area) =="
@@ -72,6 +81,7 @@ _ratio() {
 }
 ALLPS=""
 for e in $(echo "$EXT" | tr ',' ' '); do ALLPS="$ALLPS *.$e"; done
+ALLPS="$ALLPS$EXPS"
 echo "SCOPE LINE: all tracked source | ext=$EXT | since=$SINCE"
 _ratio "$ALLPS"
 if [ -n "$SRC" ]; then
@@ -103,30 +113,34 @@ fi
 echo "== 6. INTERNAL IMPORT DIRECTION (look for arrows that should not exist) =="
 echo "   third-party and stdlib filtered out; only edges between this repo's own modules"
 git ls-files -- "$@" 2>/dev/null | awk '
+function emit(s,  t) { print s
+  t=s; gsub(/-/,"_",t); if (t != s) print t
+  t=s; gsub(/_/,"-",t); if (t != s) print t }
 { n=split($0,p,"/")
-  for (i=1;i<n;i++) print p[i]
-  leaf=p[n]; sub(/\.[A-Za-z0-9]+$/,"",leaf); print leaf }' | sort -u > "/tmp/_cen_int.$$"
+  for (i=1;i<n;i++) emit(p[i])
+  leaf=p[n]; sub(/\.[A-Za-z0-9]+$/,"",leaf); emit(leaf) }' | sort -u > "/tmp/_cen_int.$$"
 git grep -nE "^[[:space:]]*(from|import)[[:space:]]+[.A-Za-z_]|require\(|^[[:space:]]*use " -- "$@" 2>/dev/null | awk '
 NR==FNR { internal[$0]=1; next }
 { i=index($0,":"); file=substr($0,1,i-1); rest=substr($0,i+1); j=index(rest,":"); line=substr(rest,j+1)
-  src=file; sub(/\/[^\/]*$/,"",src)
+  ns=split(file,pp,"/"); src=(ns>2 ? pp[1]"/"pp[2] : (ns>1 ? pp[1] : "(root)"))
   if (match(line, /(from|import|require\(|use)[[:space:]("\047]+[.A-Za-z_0-9@\/-]+/)) {
     t=substr(line, RSTART, RLENGTH); sub(/^(from|import|require\(|use)[[:space:]("\047]+/, "", t)
     gsub(/^[.\/]+/, "", t); nq=split(t, q, /[.\/]/)
+    if (q[1] ~ /^(crate|super|self)$/) next
     if (!(q[1] in internal)) next
-    tgt=q[1]; if (nq > 1 && (q[2] in internal)) tgt=q[1]"."q[2]
+    tgt=q[1]; if (nq > 1 && q[2] != "" && (q[2] in internal)) tgt=q[1]"."q[2]
     if (tgt != "") seen[src"  ->  "tgt]++ } }
 END { for (k in seen) printf "%5d  %s\n", seen[k], k }' "/tmp/_cen_int.$$" - | sort -rn | head -18
 rm -f "/tmp/_cen_int.$$"
 echo
 
 echo "== 7. SAME NAME DEFINED IN SEVERAL FILES (drift risk) =="
-git grep -nE '^[[:space:]]*(def|class|function|func|fn|type|interface)[[:space:]]+[A-Za-z_]' -- "$@" 2>/dev/null \
+git grep -nE '^[[:space:]]*(pub[[:space:]]+|pub\([a-z:]+\)[[:space:]]+)?(def|class|function|func|fn|type|interface|struct|enum|trait)[[:space:]]+[A-Za-z_]' -- "$@" 2>/dev/null \
  | grep -vE '(^|/)(tests?|spec|__tests__)/' | awk '
 { i=index($0,":"); file=substr($0,1,i-1); rest=substr($0,i+1); j=index(rest,":"); line=substr(rest,j+1)
-  if (match(line, /(def|class|function|func|fn|type|interface)[[:space:]]+[A-Za-z_][A-Za-z_0-9]*/)) {
-    t=substr(line, RSTART, RLENGTH); sub(/^[a-z]+[[:space:]]+/, "", t)
-    if (t ~ /^(__init__|__repr__|__str__|__eq__|main|run|setUp|toString)$/) next
+  if (match(line, /(pub[[:space:]]+|pub\([a-z:]+\)[[:space:]]+)?(def|class|function|func|fn|type|interface|struct|enum|trait)[[:space:]]+[A-Za-z_][A-Za-z_0-9]*/)) {
+    t=substr(line, RSTART, RLENGTH); sub(/^(pub(\([a-z:]+\))?[[:space:]]+)?[a-z]+[[:space:]]+/, "", t)
+    if (t ~ /^(__init__|__repr__|__str__|__eq__|main|run|setUp|toString|new|default|drop|fmt|next|from|into|try_from|try_into|clone|clone_from|eq|ne|cmp|partial_cmp|hash|deref|deref_mut|as_ref|as_mut|borrow|borrow_mut|index|index_mut|poll|source|description|len|is_empty|iter|into_iter|from_iter|to_string|from_str|serialize|deserialize)$/) next
     k=t"\t"file; if (!(k in u)) { u[k]=1; n[t]++; w[t]=w[t]" "file } } }
 END { for (t in n) if (n[t] >= 3) printf "%2d  %-24s %s\n", n[t], t, w[t] }' | sort -rn | head -10
 echo
@@ -155,9 +169,9 @@ git grep -n '' -- "$@" 2>/dev/null | awk '
 { i=index($0,":"); file=substr($0,1,i-1); rest=substr($0,i+1); j=index(rest,":"); l=substr(rest,j+1)
   if (file ~ /(^|\/)(tests?|spec|__tests__)\//) { dec=0; next }
   gsub(/^[ \t]+|[ \t]+$/, "", l)
-  isdef = match(l, /^(export[[:space:]]+)?(def|class|function|func|fn)[[:space:]]+[A-Za-z_][A-Za-z_0-9]*/)
+  isdef = match(l, /^(export[[:space:]]+|pub[[:space:]]+|pub\([a-z:]+\)[[:space:]]+)?(def|class|function|func|fn)[[:space:]]+[A-Za-z_][A-Za-z_0-9]*/)
   if (isdef && !dec) {
-    t=substr(l, RSTART, RLENGTH); sub(/^(export[[:space:]]+)?[a-z]+[[:space:]]+/, "", t)
+    t=substr(l, RSTART, RLENGTH); sub(/^(export|pub(\([a-z:]+\))?)?[[:space:]]*[a-z]+[[:space:]]+/, "", t)
     if (!(t ~ /^_/) && length(t) >= 4) print t }
   dec = (l ~ /^@/ || l ~ /^#\[/) }' | sort -u > "/tmp/_cen_def.$$"
 git grep -how '[A-Za-z_][A-Za-z_0-9]*' 2>/dev/null | sort | uniq -c > "/tmp/_cen_use.$$"
