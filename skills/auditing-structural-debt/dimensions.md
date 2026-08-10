@@ -28,6 +28,11 @@ promise the system doesn't keep.
 - Frozen or versioned contracts (schema, wire formats, plugin APIs): does the code still honour
   the frozen version, or has it quietly diverged?
 
+**Before reporting a numeric claim as false**, establish three things: that you are reading the
+edition that ships, that the artifact you compared against is the one the claim was computed
+from, and that the artifact is not from an older version. If the backing artifact is missing or
+stale, the finding is "this claim is unbacked", not "this claim is wrong".
+
 **Report threshold:** any claim that is false today. State the document, the line, and the reality.
 A false contract in a *frozen* document is release-blocking regardless of how small it looks.
 

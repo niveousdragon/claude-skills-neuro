@@ -176,6 +176,16 @@ the checkout — `git show <ref>:<path>` and `git grep <pat> <ref> -- <path>` ne
 mutate nothing. (On Windows, prefix those with `MSYS_NO_PATHCONV=1` or the shell mangles the
 colon.)
 
+**The same question applies to documents and to evidence, and it is easy to forget there.**
+A paper, a spec or a design note can have several editions in flight — a draft in the tree, a
+newer one in a worktree or a branch. Find the edition that will actually ship before you audit
+one. And when a document cites a measurement, check the *vintage* of the artifact it cites
+before comparing the two: an artifact from an older version is not evidence that the text is
+wrong, it is evidence that the claim is unbacked. Those are different findings with different
+remedies — recompute the number, versus commit the run — and reporting the first when the truth
+is the second is the most damaging mistake an audit can make, because it is both alarming and
+false.
+
 Read the ledger if one exists — its open entries are your starting frontier, and you must report
 their current status (`fixed`, `worse`, still `open`) before adding anything new. Read the
 project's own contracts: CLAUDE.md/AGENTS.md, ARCHITECTURE, CONVENTIONS, schema files, ADRs. These
