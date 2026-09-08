@@ -30,7 +30,7 @@
 ### Шаг A. Кастомные скиллы из репозитория
 
 В `skills/` лежат `deep-analysis`, `figure-alignment`, `tex-to-docx`, `share-figure`,
-`auditing-structural-debt` и `lossless-doc-compress`. Их нужно
+`auditing-structural-debt`, `lossless-doc-compress` и `bibliography-lockfile`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -45,11 +45,12 @@
   инструментами. Результат тот же — это всего лишь копирование папок.
 
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
-`figure-alignment/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/` и
-`lossless-doc-compress/`,
+`figure-alignment/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
+`lossless-doc-compress/` и `bibliography-lockfile/`,
 в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
 в `auditing-structural-debt/` — ещё четыре файла, в `lossless-doc-compress/` —
-подпапка `references/` с пятью файлами; копируй папку целиком).
+подпапка `references/` с пятью файлами, в `bibliography-lockfile/` — ещё четыре
+файла: генератор, хук и шаблоны; копируй папку целиком).
 
 > `lossless-doc-compress` — единственный скилл в `skills/`, написанный не нами: это
 > снимок стороннего скилла под MIT (см. `skills/lossless-doc-compress/ORIGIN.md`).
@@ -118,7 +119,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все девять:
+все десять:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
@@ -128,11 +129,12 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `share-figure` | `~/.claude/skills/share-figure/SKILL.md` | папка на месте |
 | `auditing-structural-debt` | `~/.claude/skills/auditing-structural-debt/SKILL.md` | папка на месте, рядом ещё 4 файла |
 | `lossless-doc-compress` | `~/.claude/skills/lossless-doc-compress/SKILL.md` | папка на месте, рядом `references/` с 5 файлами |
+| `bibliography-lockfile` | `~/.claude/skills/bibliography-lockfile/SKILL.md` | папка на месте, рядом ещё 4 файла (bibgen.py и др.) |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все девять
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все десять
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 

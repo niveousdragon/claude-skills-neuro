@@ -1,0 +1,55 @@
+# sources.yaml — the ONLY hand-edited bibliography file.
+# One entry per citation key; identifier only, never BibTeX text.
+# Generate with:  python bibgen.py   ->  refs.generated.bib + report.md
+# Gate with:      python bibgen.py --compare <your refs.bib>
+
+entries:
+  # Journal article with a DOI (Crossref, publisher-deposited — first choice)
+  kraskov2004estimating:
+    type: article
+    doi: "10.1103/PhysRevE.69.066138"
+
+  # Preprint (arXiv API; venue string that arXiv lacks goes into override)
+  shwartz2017opening:
+    type: article
+    arxiv: "1703.00810"
+    override:
+      journal: "arXiv preprint arXiv:1703.00810"
+      year: "2017"
+
+  # ICML paper without a DOI (official PMLR proceedings page)
+  belghazi2018mine:
+    type: inproceedings
+    pmlr: "v80/belghazi18a"
+    override:
+      booktitle: "International Conference on Machine Learning (ICML)"
+      pages: "531--540"
+      year: "2018"
+
+  # NeurIPS/ICLR paper without a DOI (OpenAlex; exact-title match required or it fails)
+  ansuini2019intrinsic:
+    type: inproceedings
+    openalex_title: "Intrinsic dimension of data representations in deep neural networks"
+    override:
+      booktitle: "Advances in Neural Information Processing Systems (NeurIPS)"
+      year: "2019"
+
+  # Publisher record is incomplete (initials only / lost suffix): a hand-written
+  # author field is allowed ONLY with a verified: stamp — date + how the byline
+  # was checked. The generator refuses an authors_override without it.
+  okeefe1971hippocampus:
+    type: article
+    doi: "10.1016/0006-8993(71)90358-1"
+    authors_override: "O'Keefe, John and Dostrovsky, Jonathan"
+    verified: "2026-09-05, checked against the Brain Research byline"
+
+  # No machine source at all (tech report, thesis): manual, verified stamp mandatory.
+  krizhevsky2009learning:
+    type: techreport
+    manual: true
+    verified: "2026-09-05, canonical tech report, checked by hand"
+    fields:
+      author: "Krizhevsky, Alex"
+      title: "{Learning Multiple Layers of Features from Tiny Images}"
+      institution: "University of Toronto"
+      year: "2009"
