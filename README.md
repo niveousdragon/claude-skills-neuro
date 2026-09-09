@@ -54,7 +54,8 @@ Claude Code.
 
 **Проверка:** спроси «Какие скиллы тебе доступны?» — в списке должны быть
 `deep-analysis`, `figure-alignment`, `tex-to-docx`, `share-figure`,
-`auditing-structural-debt`, `lossless-doc-compress`, `avoid-ai-writing`,
+`auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile`,
+`avoid-ai-writing`,
 скиллы из `superpowers`,
 команды `/ars-*` и `skill-creator`.
 
