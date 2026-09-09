@@ -30,7 +30,8 @@
 ### Шаг A. Кастомные скиллы из репозитория
 
 В `skills/` лежат `deep-analysis`, `figure-alignment`, `tex-to-docx`, `share-figure`,
-`auditing-structural-debt`, `lossless-doc-compress` и `bibliography-lockfile`. Их нужно
+`auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile` и
+`avoid-ai-writing`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -46,15 +47,17 @@
 
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
 `figure-alignment/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
-`lossless-doc-compress/` и `bibliography-lockfile/`,
+`lossless-doc-compress/`, `bibliography-lockfile/` и `avoid-ai-writing/`,
 в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
 в `auditing-structural-debt/` — ещё четыре файла, в `lossless-doc-compress/` —
 подпапка `references/` с пятью файлами, в `bibliography-lockfile/` — ещё четыре
-файла: генератор, хук и шаблоны; копируй папку целиком).
+файла: генератор, хук и шаблоны, в `avoid-ai-writing/` — `ORIGIN.md` и `LICENSE`;
+копируй папку целиком).
 
-> `lossless-doc-compress` — единственный скилл в `skills/`, написанный не нами: это
-> снимок стороннего скилла под MIT (см. `skills/lossless-doc-compress/ORIGIN.md`).
-> Правки в него не вносим — при обновлении папка перезаписывается копией из upstream.
+> `lossless-doc-compress` и `avoid-ai-writing` — единственные скиллы в `skills/`,
+> написанные не нами: это снимки сторонних скиллов под MIT (см. `ORIGIN.md` в папке
+> каждого). Правки в них не вносим — при обновлении папка перезаписывается копией
+> из upstream.
 
 **Внешняя зависимость (только для `tex-to-docx`).** Этому скиллу нужен `pandoc` —
 без него он не работает вообще. Проверь `pandoc --version`; если его нет, скажи
@@ -119,7 +122,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все десять:
+все одиннадцать:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
@@ -130,11 +133,12 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `auditing-structural-debt` | `~/.claude/skills/auditing-structural-debt/SKILL.md` | папка на месте, рядом ещё 4 файла |
 | `lossless-doc-compress` | `~/.claude/skills/lossless-doc-compress/SKILL.md` | папка на месте, рядом `references/` с 5 файлами |
 | `bibliography-lockfile` | `~/.claude/skills/bibliography-lockfile/SKILL.md` | папка на месте, рядом ещё 4 файла (bibgen.py и др.) |
+| `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все десять
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все одиннадцать
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -178,6 +182,18 @@ Code. **Ты, скорее всего, не можешь выполнить их
   зови. Скилл сторонний (MIT), см. `skills/lossless-doc-compress/ORIGIN.md`; внутри он
   ссылается на братские скиллы `ml-system-design-review` и `ai-stage-gate` — их у нас нет,
   и ставить их не нужно.
+- **`avoid-ai-writing`** — вычистить из текста приметы машинного письма: частокол тире,
+  злоупотребление жирным, «правило трёх», конструкцию «не X, а Y», шаблонные концовки,
+  разговорные хвосты вроде «надеюсь, это поможет», расплывчатые ссылки на «экспертов».
+  Три режима: `detect` (только пометить), `rewrite` (переписать, по умолчанию) и `edit`
+  (править файл на месте). Есть профили голоса и контекста (`technical-blog`, `docs`
+  и др.) и три уровня серьёзности находок. Ключевое ограничение, ради которого скилл сам
+  же и написан осторожно: это редакторский инструмент, **не** вердикт об авторстве —
+  у детекторов доля ложных срабатываний на неносителях английского превышает 60 %.
+  Второе ограничение наше: словарные таблицы там английские, на русском тексте работают
+  только структурные правила, а потолок «1 тире на 1000 слов» к русскому неприменим
+  напрямую (у нас тире обязательно на месте опущенной связки). Подробнее — в
+  `skills/avoid-ai-writing/ORIGIN.md`. Скилл сторонний (MIT).
 
 ### Из `superpowers`
 - `brainstorming` — перед новой разработкой, разложить замысел до кода.
@@ -243,9 +259,9 @@ description: Use when <конкретные триггеры и симптомы
 
 - Не копировать сторонние плагины (superpowers, ARS, skill-creator) в этот
   репозиторий — только ставить из marketplace. Исключение — одиночный скилл
-  `lossless-doc-compress`: он лежит в `skills/` осознанно, снимком под MIT, потому что
-  marketplace для него нет. Не удаляй его как «чужое» и не правь его файлы вручную —
-  обновление делается перезаписью папки из upstream (адрес в `ORIGIN.md`).
+  `lossless-doc-compress` и `avoid-ai-writing`: они лежат в `skills/` осознанно, снимками
+  под MIT, потому что marketplace для них нет. Не удаляй их как «чужое» и не правь их
+  файлы вручную — обновление делается перезаписью папки из upstream (адрес в `ORIGIN.md`).
 - Не ставить `superpowers-chrome` вместо `superpowers` — это разные плагины (см.
   Шаг B). Если поставил по ошибке, удали: `/plugin uninstall superpowers-chrome@superpowers-marketplace`.
 - Не редактировать рабочий код пользователя в рамках установки — твоя задача здесь
