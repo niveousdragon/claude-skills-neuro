@@ -29,7 +29,7 @@
 
 ### Шаг A. Кастомные скиллы из репозитория
 
-В `skills/` лежат `deep-analysis`, `figure-alignment`, `tex-to-docx`, `share-figure`,
+В `skills/` лежат `deep-analysis`, `figure-alignment`, `figure-audit`, `tex-to-docx`, `share-figure`,
 `auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile` и
 `avoid-ai-writing`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
@@ -46,9 +46,10 @@
   инструментами. Результат тот же — это всего лишь копирование папок.
 
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
-`figure-alignment/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
+`figure-alignment/`, `figure-audit/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
 `lossless-doc-compress/`, `bibliography-lockfile/` и `avoid-ai-writing/`,
 в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
 в `auditing-structural-debt/` — ещё четыре файла, в `lossless-doc-compress/` —
 подпапка `references/` с пятью файлами, в `bibliography-lockfile/` — ещё четыре
 файла: генератор, хук и шаблоны, в `avoid-ai-writing/` — `ORIGIN.md` и `LICENSE`;
@@ -66,6 +67,11 @@
 чтобы векторные картинки (PDF/EPS) не оказались в Word пустыми рамками. Остальные
 скиллы ничего ставить в систему не требуют, так что на этом шаге не блокируйся:
 если пользователь не собирается конвертировать LaTeX в Word, отложи и иди дальше.
+
+**Внешняя зависимость (только для `figure-audit`).** Проверке рисунка из скрипта нужен
+лишь matplotlib, который у пользователя уже стоит, раз он строит рисунки. Проверке
+готового PDF (рисунок из Prism, Illustrator, R) нужен тот же `pymupdf`, что и для
+`tex-to-docx`. Ставить отдельно ничего не нужно, и на этом шаге не блокируйся.
 
 **Внешняя зависимость (только для `auditing-structural-debt`).** Скрипту переписи
 `census.sh` нужны git и POSIX-оболочка: на Windows это Git Bash, он ставится вместе
@@ -122,12 +128,13 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все одиннадцать:
+все двенадцать:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
 | `deep-analysis` | `~/.claude/skills/deep-analysis/SKILL.md` | папка на месте |
 | `figure-alignment` | `~/.claude/skills/figure-alignment/SKILL.md` | папка на месте |
+| `figure-audit` | `~/.claude/skills/figure-audit/SKILL.md` | папка на месте, рядом `figaudit.py` |
 | `tex-to-docx` | `~/.claude/skills/tex-to-docx/SKILL.md` | папка на месте, рядом `tex2docx.py` |
 | `share-figure` | `~/.claude/skills/share-figure/SKILL.md` | папка на месте |
 | `auditing-structural-debt` | `~/.claude/skills/auditing-structural-debt/SKILL.md` | папка на месте, рядом ещё 4 файла |
@@ -138,7 +145,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все одиннадцать
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все двенадцать
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -157,6 +164,15 @@ Code. **Ты, скорее всего, не можешь выполнить их
 - **`figure-alignment`** — создание/правка мультипанельных matplotlib-фигур для
   публикаций: панели не выравниваются, нужен квадрат, правка одной панели ломает
   другие, общий GridSpec, программная проверка выравнивания.
+- **`figure-audit`** — подготовить рисунок к подаче в журнал или проверить готовый:
+  ширина под колонку (одна, полторы, две), размер шрифта в печати, встроены ли шрифты
+  (не Type 3), какой формат и dpi принимает журнал, налезающий и обрезанный текст,
+  правила конкретного журнала. Требования Nature (и Nature Neuroscience), Cell Press, eNeuro, PLOS и eLife
+  записаны в таблицу скрипта `figaudit.py` с адресом страницы и датой проверки; журнала
+  нет в таблице — агент читает его страницу, а не вспоминает. Проверку по заготовке
+  взяли из OpenResearch (alphaXiv, MIT), см. `skills/figure-audit/LICENSE-OpenResearch`.
+  Проверяет и готовый файл, сделанный не в Python: PDF из Prism или Illustrator и
+  заголовок TIFF (размер, dpi, сжатие, объём файла).
 - **`tex-to-docx`** — перевести `.tex`-статью в Word для соавтора, редактора или
   журнала: картинки (включая векторные PDF/EPS), формулы, таблицы, цитаты и
   кросс-ссылки сохраняются, а комментарии и черновые пометки в файл не попадают.
