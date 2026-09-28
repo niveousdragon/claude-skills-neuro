@@ -30,8 +30,8 @@
 ### Шаг A. Кастомные скиллы из репозитория
 
 В `skills/` лежат `deep-analysis`, `figure-alignment`, `figure-audit`, `tex-to-docx`, `share-figure`,
-`auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile` и
-`avoid-ai-writing`. Их нужно
+`auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile`,
+`msu-publication-clearance` и `avoid-ai-writing`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -47,8 +47,9 @@
 
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
 `figure-alignment/`, `figure-audit/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
-`lossless-doc-compress/`, `bibliography-lockfile/` и `avoid-ai-writing/`,
-в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+`lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/` и
+`avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+в `msu-publication-clearance/` — `fill_clearance.py`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
 в `auditing-structural-debt/` — ещё четыре файла, в `lossless-doc-compress/` —
 подпапка `references/` с пятью файлами, в `bibliography-lockfile/` — ещё четыре
@@ -72,6 +73,12 @@
 лишь matplotlib, который у пользователя уже стоит, раз он строит рисунки. Проверке
 готового PDF (рисунок из Prism, Illustrator, R) нужен тот же `pymupdf`, что и для
 `tex-to-docx`. Ставить отдельно ничего не нужно, и на этом шаге не блокируйся.
+
+**Внешняя зависимость (только для `msu-publication-clearance`).** Скрипту заполнения
+бланка нужен `python-docx` (`pip install python-docx`). Проверку «бланк уместился на одну
+страницу» он делает через установленный MS Word (на Windows нужен ещё `pywin32`, в
+Anaconda он уже есть); без Word скрипт заполняет бланк и прямо пишет, что число страниц
+не проверено. Не блокируйся: ставь, только если пользователь оформляет заключения.
 
 **Внешняя зависимость (только для `auditing-structural-debt`).** Скрипту переписи
 `census.sh` нужны git и POSIX-оболочка: на Windows это Git Bash, он ставится вместе
@@ -128,7 +135,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все двенадцать:
+все тринадцать:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
@@ -140,12 +147,13 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `auditing-structural-debt` | `~/.claude/skills/auditing-structural-debt/SKILL.md` | папка на месте, рядом ещё 4 файла |
 | `lossless-doc-compress` | `~/.claude/skills/lossless-doc-compress/SKILL.md` | папка на месте, рядом `references/` с 5 файлами |
 | `bibliography-lockfile` | `~/.claude/skills/bibliography-lockfile/SKILL.md` | папка на месте, рядом ещё 4 файла (bibgen.py и др.) |
+| `msu-publication-clearance` | `~/.claude/skills/msu-publication-clearance/SKILL.md` | папка на месте, рядом `fill_clearance.py` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все двенадцать
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все тринадцать
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -204,6 +212,14 @@ Code. **Ты, скорее всего, не можешь выполнить их
   память человека или модели. Зови, когда в проекте цитируют статьи в BibTeX и записи
   добавляют вручную, когда разворачивают библиографию для новой статьи и когда
   проверщик ссылок нашёл выдуманные ссылки или неверных авторов.
+- **`msu-publication-clearance`** — оформить экспертное заключение о возможности
+  открытого опубликования (МГУ, биофак) на статью, тезисы, материалы сборника,
+  диссертацию и автореферат. Скрипт `fill_clearance.py` меняет в бланке только текст,
+  выделенный жёлтым, снимает выделение и проверяет, что бланк уместился на одну
+  страницу. Сам бланк в репозитории не лежит: он меняется, и его каждый раз берут
+  свежим с сайта факультета. Скилл заранее напоминает, что заключение нужно до подачи
+  в журнал, препринта и доклада, и перечисляет, что нести вместе с бланком (постер,
+  письмо организации соавтора и т.д.).
 - **`avoid-ai-writing`** — вычистить из текста приметы машинного письма: частокол тире,
   злоупотребление жирным, «правило трёх», конструкцию «не X, а Y», шаблонные концовки,
   разговорные хвосты вроде «надеюсь, это поможет», расплывчатые ссылки на «экспертов».
