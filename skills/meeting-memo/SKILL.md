@@ -37,8 +37,9 @@ for a human rather than silently guessed.
 The transcript alone does not tell you who "Константин Владимирович / Владимир
 Владимирович" is. Before writing, look for:
 - earlier memos and transcripts of the same series (same folder, project notes);
-- the document the meeting is about (application draft, paper, plan) — its current
-  version;
+- the document the meeting is about (application draft, paper, plan). Page and
+  section numbers said aloud tell you which version the speakers had in front of them;
+  compare against that version, not only the latest;
 - the participant list: invitation, chat, project files.
 
 Resolve names from this context. Record every correction you made (misheard → real
@@ -52,7 +53,9 @@ Read all of it in chunks, not the first third. Make a topic map first: topic →
 range. Then write the memo in this shape, in the language of the meeting:
 
 1. **Header** — date, start time, duration, subject; participants with roles, noting
-   that attribution is restored from forms of address, not from speaker labels.
+   that attribution is restored from forms of address, not from speaker labels. If
+   anyone set conditions on the recording ("не выкладывайте в сеть"), state them here
+   and keep the memo and transcript out of shared or public places.
 2. **Decisions** — numbered, one line each, first. Deadlines with date **and weekday**,
    checked against the calendar.
 3. **Topic sections** in order of importance, each with its time range. Inside: who
