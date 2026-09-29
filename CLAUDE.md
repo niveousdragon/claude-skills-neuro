@@ -31,7 +31,7 @@
 
 В `skills/` лежат `deep-analysis`, `figure-alignment`, `figure-audit`, `tex-to-docx`, `share-figure`,
 `auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile`,
-`msu-publication-clearance` и `avoid-ai-writing`. Их нужно
+`msu-publication-clearance`, `meeting-memo` и `avoid-ai-writing`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -47,9 +47,10 @@
 
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
 `figure-alignment/`, `figure-audit/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
-`lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/` и
-`avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+`lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/`,
+`meeting-memo/` и `avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
 в `msu-publication-clearance/` — `fill_clearance.py`,
+в `meeting-memo/` — `transcribe.py`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
 в `auditing-structural-debt/` — ещё четыре файла, в `lossless-doc-compress/` —
 подпапка `references/` с пятью файлами, в `bibliography-lockfile/` — ещё четыре
@@ -79,6 +80,12 @@
 страницу» он делает через установленный MS Word (на Windows нужен ещё `pywin32`, в
 Anaconda он уже есть); без Word скрипт заполняет бланк и прямо пишет, что число страниц
 не проверено. Не блокируйся: ставь, только если пользователь оформляет заключения.
+
+**Внешняя зависимость (только для `meeting-memo`).** Расшифровке записи нужен
+`faster-whisper` (`pip install faster-whisper`); при первом запуске он скачает модель
+распознавания (около 1,6 ГБ). Звук из `.webm`/`.mp4` он читает сам, `ffmpeg` не нужен.
+Если у встречи уже есть готовая расшифровка (Телемост её сохраняет), скилл работает
+и без него. Не блокируйся: ставь, когда пользователь впервые принесёт запись.
 
 **Внешняя зависимость (только для `auditing-structural-debt`).** Скрипту переписи
 `census.sh` нужны git и POSIX-оболочка: на Windows это Git Bash, он ставится вместе
@@ -135,7 +142,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все тринадцать:
+все четырнадцать:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
@@ -148,12 +155,13 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `lossless-doc-compress` | `~/.claude/skills/lossless-doc-compress/SKILL.md` | папка на месте, рядом `references/` с 5 файлами |
 | `bibliography-lockfile` | `~/.claude/skills/bibliography-lockfile/SKILL.md` | папка на месте, рядом ещё 4 файла (bibgen.py и др.) |
 | `msu-publication-clearance` | `~/.claude/skills/msu-publication-clearance/SKILL.md` | папка на месте, рядом `fill_clearance.py` |
+| `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все тринадцать
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все четырнадцать
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -220,6 +228,13 @@ Code. **Ты, скорее всего, не можешь выполнить их
   свежим с сайта факультета. Скилл заранее напоминает, что заключение нужно до подачи
   в журнал, препринта и доклада, и перечисляет, что нести вместе с бланком (постер,
   письмо организации соавтора и т.д.).
+- **`meeting-memo`** — из записи встречи (Телемост, Zoom, диктофон) или её сырой
+  расшифровки сделать мемо, по которому можно действовать: решения, сроки с днём
+  недели, позиции участников, поручения «кто / что / когда», открытые вопросы. У каждого
+  утверждения таймкод, чтобы спорное место можно было найти в записи за минуту;
+  неразборчивые места и восстановленные имена вынесены в отдельный список для проверки.
+  Если расшифровки нет, делает её сам скриптом `transcribe.py` (нужен `faster-whisper`);
+  на обычном компьютере это занимает в 1–1,5 раза больше времени, чем шла встреча.
 - **`avoid-ai-writing`** — вычистить из текста приметы машинного письма: частокол тире,
   злоупотребление жирным, «правило трёх», конструкцию «не X, а Y», шаблонные концовки,
   разговорные хвосты вроде «надеюсь, это поможет», расплывчатые ссылки на «экспертов».
