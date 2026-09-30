@@ -50,7 +50,7 @@
 `lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/`,
 `meeting-memo/` и `avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
 в `msu-publication-clearance/` — `fill_clearance.py`,
-в `meeting-memo/` — `transcribe.py`,
+в `meeting-memo/` — `transcribe.py`, `setup.ps1` и `setup.sh`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
 в `auditing-structural-debt/` — ещё четыре файла, в `lossless-doc-compress/` —
 подпапка `references/` с пятью файлами, в `bibliography-lockfile/` — ещё четыре
@@ -81,11 +81,13 @@
 Anaconda он уже есть); без Word скрипт заполняет бланк и прямо пишет, что число страниц
 не проверено. Не блокируйся: ставь, только если пользователь оформляет заключения.
 
-**Внешняя зависимость (только для `meeting-memo`).** Расшифровке записи нужен
-`faster-whisper` (`pip install faster-whisper`); при первом запуске он скачает модель
-распознавания (около 1,6 ГБ). Звук из `.webm`/`.mp4` он читает сам, `ffmpeg` не нужен.
-Если у встречи уже есть готовая расшифровка (Телемост её сохраняет), скилл работает
-и без него. Не блокируйся: ставь, когда пользователь впервые принесёт запись.
+**Внешняя зависимость (только для `meeting-memo`).** Скиллу нужны Python,
+`faster-whisper` с моделью распознавания (около 1,6 ГБ) и `pandoc` для версии мемо в Word.
+Всё это ставит один скрипт из папки скилла, на чистом компьютере тоже:
+`powershell -ExecutionPolicy Bypass -File ~/.claude/skills/meeting-memo/setup.ps1`
+(macOS / Linux: `bash ~/.claude/skills/meeting-memo/setup.sh`). Последняя строка должна
+быть `[OK] meeting-memo is ready`. Скачивание модели занимает время — не блокируйся:
+запускай, когда пользователь впервые принесёт запись.
 
 **Внешняя зависимость (только для `auditing-structural-debt`).** Скрипту переписи
 `census.sh` нужны git и POSIX-оболочка: на Windows это Git Bash, он ставится вместе
@@ -155,7 +157,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `lossless-doc-compress` | `~/.claude/skills/lossless-doc-compress/SKILL.md` | папка на месте, рядом `references/` с 5 файлами |
 | `bibliography-lockfile` | `~/.claude/skills/bibliography-lockfile/SKILL.md` | папка на месте, рядом ещё 4 файла (bibgen.py и др.) |
 | `msu-publication-clearance` | `~/.claude/skills/msu-publication-clearance/SKILL.md` | папка на месте, рядом `fill_clearance.py` |
-| `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py` |
+| `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py`, `setup.ps1`, `setup.sh` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
@@ -230,10 +232,11 @@ Code. **Ты, скорее всего, не можешь выполнить их
   письмо организации соавтора и т.д.).
 - **`meeting-memo`** — из записи встречи (Телемост, Zoom, диктофон) или её сырой
   расшифровки сделать мемо, по которому можно действовать: решения, сроки с днём
-  недели, позиции участников, поручения «кто / что / когда», открытые вопросы. У каждого
-  утверждения таймкод, чтобы спорное место можно было найти в записи за минуту;
-  неразборчивые места и восстановленные имена вынесены в отдельный список для проверки.
-  Если расшифровки нет, делает её сам скриптом `transcribe.py` (нужен `faster-whisper`);
+  недели, позиции участников, поручения «кто / что / когда», открытые вопросы. На выходе
+  два файла: рабочий `.md` для автора (у каждого утверждения таймкод, неразборчивые места
+  и восстановленные имена — в отдельном списке для проверки) и чистый `.docx` для
+  читателя, собранный из того же `.md` без пометок.
+  Если расшифровки нет, делает её сам скриптом `transcribe.py` (установка — `setup.ps1`);
   на обычном компьютере это занимает в 1–1,5 раза больше времени, чем шла встреча.
 - **`avoid-ai-writing`** — вычистить из текста приметы машинного письма: частокол тире,
   злоупотребление жирным, «правило трёх», конструкцию «не X, а Y», шаблонные концовки,

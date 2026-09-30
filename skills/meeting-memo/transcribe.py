@@ -5,6 +5,7 @@ Lines are flushed as they come, so a partial file is usable if the run is stoppe
 Console output is ASCII only (Windows cp1251 consoles crash on arbitrary Unicode).
 
 usage: python transcribe.py RECORDING OUT_STEM [--model large-v3-turbo] [--lang ru]
+       python transcribe.py --check   # download the model once and prove it runs
 """
 import argparse
 import os
@@ -28,13 +29,17 @@ def ts(sec, srt=False):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("recording")
-    ap.add_argument("out_stem")
+    ap.add_argument("recording", nargs="?")
+    ap.add_argument("out_stem", nargs="?")
     ap.add_argument("--model", default="large-v3-turbo")
     ap.add_argument("--lang", default="ru")
     ap.add_argument("--prompt", default=None,
                     help="initial prompt: names, terms, acronyms expected in the talk")
+    ap.add_argument("--check", action="store_true",
+                    help="load (and on first run download) the model, decode 2 s of silence")
     a = ap.parse_args()
+    if not a.check and not (a.recording and a.out_stem):
+        ap.error("RECORDING and OUT_STEM are required unless --check is given")
 
     # int8 on CPU keeps large-v3-turbo usable without a GPU; CUDA is used when present.
     try:
@@ -44,6 +49,12 @@ def main():
         cuda = False
     model = WhisperModel(a.model, device="cuda" if cuda else "cpu",
                          compute_type="float16" if cuda else "int8")
+
+    if a.check:
+        import numpy as np
+        list(model.transcribe(np.zeros(32000, dtype=np.float32), language=a.lang)[0])
+        print(f"[OK] model {a.model} loaded and ran, device={'cuda' if cuda else 'cpu'}")
+        return 0
 
     segments, info = model.transcribe(
         a.recording, language=a.lang, vad_filter=True,

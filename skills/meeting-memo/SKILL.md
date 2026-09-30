@@ -13,6 +13,28 @@ misheard, phrases cut. **Core principle: every claim in the memo can be checked 
 the recording in under a minute**, and whatever the transcript does not settle is listed
 for a human rather than silently guessed.
 
+## Output: two files
+
+| File | For whom | What is in it |
+|---|---|---|
+| `Мемо встречи ДД.ММ.ГГГГ — <тема>.md` | the author, to verify and edit | everything: timecodes, who said what and how it was inferred, "(?)" marks, the check list, the compiler's own inferences |
+| `Мемо встречи ДД.ММ.ГГГГ — <тема>.docx` | anyone who reads it | the same content as plain, readable prose: no timecodes, no hedging marks, no check list |
+
+Both go next to the recording, together with the transcript (`… — транскрипт.txt` / `.srt`)
+if you made it. The `.md` is the source of truth; the `.docx` is derived from it, never
+written separately.
+
+## Setup on a new machine (once)
+
+Run the script beside this file; it installs what is missing (Python, pandoc,
+faster-whisper), downloads the speech model and runs a self-test:
+- Windows: `powershell -ExecutionPolicy Bypass -File setup.ps1`
+- macOS / Linux: `bash setup.sh`
+
+The last line must be `[OK] meeting-memo is ready`. Anything else — show the user the
+failing line; do not continue with a half-installed chain. When the machine is already
+set up, `python transcribe.py --check` is enough.
+
 ## Step 1. Get a transcript
 
 1. Look for an existing transcript next to the recording and in the project folder.
@@ -28,7 +50,7 @@ for a human rather than silently guessed.
      foreground shell. Say how long it will take.
    - `--prompt` with the participants' names and the project's terms (from Step 2)
      noticeably improves spelling of names and acronyms. Gather it before launching.
-   - Needs `pip install faster-whisper`; the model (~1.6 GB) downloads on first run.
+   - Needs the setup above; the model (~1.6 GB) downloads on the first run.
 3. Test on one minute before the full run (`clip_timestamps=[300, 360]`): wrong
    language, silence or a decoding error show up there, not an hour later.
 
@@ -89,8 +111,27 @@ memo, or consciously dropped (greetings, "вы меня слышите", repetit
 substance and no trace in the memo is a gap — fill it. Check every number and date in
 the memo against its timecode.
 
-Save the memo as Markdown next to the recording (`Мемо встречи ДД.ММ.ГГГГ — <тема>.md`)
-unless told otherwise; `.docx` via pandoc if the user circulates Word files.
+## Step 5. The reader's version (.docx)
+
+From the finished `.md`, write a reader's version in a temporary Markdown file in the
+system temp folder and convert it:
+`pandoc reader.md -o "Мемо встречи ДД.ММ.ГГГГ — <тема>.docx"`. Then delete the temporary
+file.
+
+| Keep | Drop |
+|---|---|
+| header: date, duration, participants by name and role | timecodes, including timecode columns in tables |
+| decisions, topic sections in the same order, tables of content | the "what to check" list and the closing note on the transcript |
+| actions — an action with an unknown owner stays, owner "не назначен" | how names were restored, "по обращениям", "(?)" |
+| open questions | the compiler's hedges about the recording: "скорее всего", "неразборчиво", "фраза обрывается" |
+| the participants' own caution ("может быть, я попробую") — it is content | — |
+| the compiler's inferences, under a heading that says they are the compiler's and were not discussed; a list is fine | — |
+
+A name or fact still unresolved is written neutrally, not guessed: initials for an
+unverified first name, "второй оппонент пока не выбран" for an open slot.
+
+Check the result: open the `.docx` text (`pandoc -t plain`) and confirm no `[` timecodes
+and no "(?)" remain.
 
 ## Common mistakes
 
@@ -100,5 +141,6 @@ unless told otherwise; `.docx` via pandoc if the user circulates Word files.
 | Summarising without project context | Leader and participants unnamed or misnamed |
 | Guessing a misheard name silently | A wrong name in a circulated memo |
 | Consensus invented where the talk ended open | People act on a decision that was not made |
+| Writing the .docx separately from the .md | Two versions drift; the reader gets facts the author never checked |
 | Running transcription in the foreground | The run dies with the turn, hour of CPU lost |
 | Reading only the start of a long transcript | The decisions at the end are missing |
