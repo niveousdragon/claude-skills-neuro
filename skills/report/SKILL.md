@@ -9,7 +9,7 @@ description: Use when asked to assemble a human-readable report, summary, write-
 
 A report is read by someone who was not inside the agent's work. Pick the mode by one question: **will the reader have seen this conversation?**
 
-- **Yes → operator report.** The reader knows the project but not what the agent read, ran and concluded. Goal: they can go through the results systematically and decide.
+- **Yes → operator report.** The reader knows the project but not what the agent read, ran and concluded. Goal: they understand the result and make the decision at hand. It is a decision document, not a record of the work.
 - **No, or unsure → external report.** The reader has nothing but the document. Goal: they understand the subject and can act on it without asking anyone.
 
 **Both modes produce the same kind of file: a LaTeX source compiled to a PDF, with every figure inside the document.** A report is read page by page, next to its figures; a `.md` with figure paths in the text is not a report. Write `.md` only if the user asked for markdown by name — and even then embed each figure with `![…](relative/path.png)`, never leave it as a path.
@@ -17,7 +17,7 @@ A report is read by someone who was not inside the agent's work. Pick the mode b
 ## Step 1. Facts before prose
 
 1. **Name the central object from the primary source, in one sentence, before writing.** For "how X works" that is the function users actually call (find it through callers, examples, tests), not the helpers it calls. For results it is the latest run the project relies on, not a superseded one.
-2. **Every number has a file behind it.** Keep a fact sheet beside the report: claim → file and line/table/log. A claim without a source is removed or marked as the agent's judgement.
+2. **Every number has a file behind it.** When a summary note and the analysis tables disagree, the tables win; say so in the fact sheet. Keep a fact sheet beside the report: claim → file and line/table/log. A claim without a source is removed or marked as the agent's judgement.
    - Report on results: no reruns of the analysis. Arithmetic on existing tables is allowed and marked "derived" in the fact sheet.
    - Report on how something works: the numbers and examples come from a script saved next to the report; its output is the source.
 3. **For every "A beats B" claim, check that B is a fair baseline** (same neurons, same data, same denominator). A comparison inherited from the analysis files is not checked just because it is in a file.
@@ -25,16 +25,20 @@ A report is read by someone who was not inside the agent's work. Pick the mode b
 
 ## Step 2. The shape
 
-**Operator report:**
-1. **Итог** — 3–5 numbered conclusions. Each opens with a bold one-line claim and carries its numbers ("11 of 11 mice").
-2. **Что считали** — data, selection, methods and every metric in plain words: what it measures, what its values mean (1 = …, 0 = …), why it was done this way. Every term the conclusions use is defined here.
-3. **Results by question** — one section per question, each with its figure and table.
-4. **A worked example** for the least intuitive result: one concrete case (a session, a neuron, a call) that shows why.
-5. **Что это значит** for the project's goal (the paper, the decision at hand). The agent's own judgement is marked as such.
-6. **Ограничения** — including what was not checked.
-7. **Файлы** — absolute paths to the data and scripts behind every number and figure.
+**Operator report** — 3–5 pages of body text, in this order:
+1. **Что решить** — the decision the operator is making: the options, your recommendation, what happens by default. No decision pending → one line on what this result changes in their picture.
+2. **Итог** — 3–5 numbered conclusions. Each is a bold one-line claim with the **one** number the decision rests on ("12 of 100 neurons") — or a pair, when the first means nothing without the second ("78 of 550, with 5 of 100 false finds"). Other numbers that make a conclusion trustworthy go to its figure or to Ограничения. Items 1–2 fit on the first page.
+3. **Почему этому можно верить** — one paragraph: what was checked and how, in plain words. Terms the conclusions need are defined here, only those.
+4. **По выводам** — a short section per conclusion that needs more than its line: one figure, a sentence or two. Skip a conclusion that its line already covers.
+5. **Ограничения** — only those that could change the decision.
+6. **Файлы** — paths to the data and scripts, one short list.
 
-The decision needed from the operator goes into the hand-off message, with a recommendation and the default. Project names and paths are fine. If the operator's own instructions define a report format, they override this one.
+What stays out:
+- **Superseded work.** Retracted checks, earlier versions, dead ends, the history of how the result was reached. If a conclusion the operator already saw is now reversed, one line in Итог: "прежний вывод X снят: …".
+- **Numbers not needed for the decision.** Every number in the text answers "does the operator need it to decide or to trust the conclusion?"; if not, it goes to the fact sheet, not the PDF.
+- **The fact sheet itself.** It is a separate file beside the PDF (`facts.*`), never a section of the report.
+
+The operator's own principles (their `CLAUDE.md`: conclusion first, what is needed from them, plain fractions, no filler) apply to the report as written rules; if they define a report format, it overrides this one. Project names are fine; run ids and paths only in Файлы.
 
 **External report:**
 1. Title and one paragraph: what this is, for whom, what the reader can do after reading.
@@ -50,11 +54,12 @@ Start from this skeleton (compiles with pdfLaTeX, Cyrillic included):
 
 ```latex
 \documentclass[11pt,a4paper]{article}
+\usepackage{cmap}              % Cyrillic text stays copyable and searchable in the PDF
 \usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[russian]{babel}   % drop for an English report
 \usepackage[margin=2cm]{geometry}
-\usepackage{graphicx,booktabs,hyperref}
+\usepackage{graphicx,booktabs,xurl,hyperref}   % xurl: long Windows paths break at the margin
 \graphicspath{{figures/}}
 \begin{document}
 ...
@@ -76,17 +81,24 @@ Start from this skeleton (compiles with pdfLaTeX, Cyrillic included):
 
 | Gate | Operator | External |
 |---|---|---|
-| Every number traced to the fact sheet | yes | yes |
+| Every number traced to the fact sheet (a separate file) | yes | yes |
 | **PDF builds clean**: the build exits 0; the `.log` has no `undefined` references, no `File ... not found`; every file in `figures/` appears in the log as `<use figures/...>` or `<figures/...>` — a figure built but not included is an error. Count figures by the log, not by `pymupdf` `get_images()`: vector figures are not raster images and it reports 0 | REQUIRED | REQUIRED |
 | **Look at the pages**: render every page to PNG (e.g. `pymupdf`: `page.get_pixmap(dpi=80)`) and view them; fix cut-off labels, unreadable fonts, figures pushed to the end, overfull tables | REQUIRED | REQUIRED |
 | **Leak scan**: list every name specific to our conversation (people, task numbers, internal stage labels, run ids, nicknames, local paths); search the final text for each; fix every hit outside the reproduction section | — | REQUIRED |
-| **Naive reader**: a fresh subagent gets only the path to the final file (the PDF if there is one; the text itself if there is no file) and the prompt below; check each error it reports against the source before fixing | REQUIRED if the conclusions go into a paper, a letter or any text leaving the lab; otherwise recommended | REQUIRED |
+| **Decision reader**: a fresh subagent gets only the PDF and the decision prompt below; every number it marks as not needed is removed from pages 1–2; if it cannot state the decision and your recommendation, rewrite page 1 | REQUIRED | — |
+| **Naive reader**: a fresh subagent gets only the path to the final file (the PDF if there is one; the text itself if there is no file) and the naive prompt below; check each error it reports against the source before fixing | only if the report also goes to someone outside the conversation | REQUIRED |
 | `avoid-ai-writing` in edit mode on the final text (for Russian text apply its structural patterns: filler, hedging, triads, promotional tone). Where it conflicts with the shape above, the shape wins: bold claims in Итог stay; a Russian dash stays where grammar requires it | yes | yes |
 | The text cites literature → the bibliography is built with `bibliography-lockfile`, never typed from memory | if cited | if cited |
+
+Decision-reader prompt: *"Read only the first two pages. Report: (1) the decision the reader of this report has to make, the options, and the author's recommendation, in your words; (2) every number on these pages you did not need to understand the decision or trust the recommendation; (3) anything you would have to read further to decide."* After cutting more than a sentence, run it once more on the new version. A fix after this reader never adds text to page 1 to answer "why" — that goes to По выводам.
 
 Naive-reader prompt: *"You know nothing about the project or who wrote this. Read the document. Report: (1) what it is about and what you would do with it, in your words; (2) every term used before it is explained; (3) every place that refers to something you were not given; (4) every claim that looks wrong or unsupported; (5) what you still cannot do after reading."*
 
 If the fixes after the naive reading were substantial, run it again. If you did not, say so.
+
+## When another agent writes the report
+
+If you hand the report to a worker or subagent, its prompt opens with: who reads it, and the decision they are making (options, your recommendation if you have one). Then the sources — the current results only, not the notes of retracted checks. Do not give it a list of things that "must be mentioned": the shape above decides what goes in. Tell it to use this skill in operator mode.
 
 ## Step 4. Hand-off
 
@@ -105,3 +117,7 @@ Deliver the PDF, with the `.tex`, `figures/`, the figure script and the fact she
 | The operator gets numbers for a metric nobody defined ("held-out R² 0.21") | Что считали defines it first: what is held out, what 1 and 0 mean |
 | Engineering slang and line numbers instead of meaning | Plain words in the text; line numbers in Файлы |
 | "Checked by a naive reader" said about a version it never saw | Say which version was checked |
+| 13 pages, eight numbers per conclusion, the operator cannot find what to decide | Что решить first; one number per conclusion; 3–5 pages; the decision reader |
+| Retracted checks get their own sections "for honesty" | Superseded work stays out; one line only if it reverses a conclusion the operator saw |
+| The fact table is printed at the end of the PDF | Separate file beside the PDF |
+| A naive reader asks for more definitions, the operator report grows after each pass | For operator reports the decision reader is the gate; it removes, not adds |
