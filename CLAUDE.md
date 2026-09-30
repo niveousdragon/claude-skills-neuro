@@ -31,7 +31,7 @@
 
 В `skills/` лежат `deep-analysis`, `figure-alignment`, `figure-audit`, `tex-to-docx`, `share-figure`,
 `auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile`,
-`msu-publication-clearance`, `meeting-memo` и `avoid-ai-writing`. Их нужно
+`msu-publication-clearance`, `meeting-memo`, `report` и `avoid-ai-writing`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -48,7 +48,7 @@
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
 `figure-alignment/`, `figure-audit/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
 `lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/`,
-`meeting-memo/` и `avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+`meeting-memo/`, `report/` и `avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
 в `msu-publication-clearance/` — `fill_clearance.py`,
 в `meeting-memo/` — `transcribe.py`, `setup.ps1` и `setup.sh`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
@@ -80,6 +80,12 @@
 страницу» он делает через установленный MS Word (на Windows нужен ещё `pywin32`, в
 Anaconda он уже есть); без Word скрипт заполняет бланк и прямо пишет, что число страниц
 не проверено. Не блокируйся: ставь, только если пользователь оформляет заключения.
+
+**Внешняя зависимость (только для `report`).** Отчёт собирается из LaTeX в PDF, нужен
+дистрибутив TeX с `latexmk` и `pdflatex`: на Windows — MiKTeX
+(`winget install --id MiKTeX.MiKTeX`), на macOS — MacTeX (`brew install --cask mactex`).
+Проверка: `pdflatex --version`. Не блокируйся: ставь, когда пользователь впервые
+попросит отчёт.
 
 **Внешняя зависимость (только для `meeting-memo`).** Скиллу нужны Python,
 `faster-whisper` с моделью распознавания (около 1,6 ГБ) и `pandoc` для версии мемо в Word.
@@ -144,7 +150,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все четырнадцать:
+все пятнадцать:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
@@ -157,13 +163,14 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `lossless-doc-compress` | `~/.claude/skills/lossless-doc-compress/SKILL.md` | папка на месте, рядом `references/` с 5 файлами |
 | `bibliography-lockfile` | `~/.claude/skills/bibliography-lockfile/SKILL.md` | папка на месте, рядом ещё 4 файла (bibgen.py и др.) |
 | `msu-publication-clearance` | `~/.claude/skills/msu-publication-clearance/SKILL.md` | папка на месте, рядом `fill_clearance.py` |
+| `report` | `~/.claude/skills/report/SKILL.md` | папка на месте |
 | `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py`, `setup.ps1`, `setup.sh` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все четырнадцать
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все пятнадцать
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -230,6 +237,11 @@ Code. **Ты, скорее всего, не можешь выполнить их
   свежим с сайта факультета. Скилл заранее напоминает, что заключение нужно до подачи
   в журнал, препринта и доклада, и перечисляет, что нести вместе с бланком (постер,
   письмо организации соавтора и т.д.).
+- **`report`** — собрать отчёт о результатах: для самого пользователя, чтобы пройти
+  по итогам работы агента по порядку, или для внешнего читателя (коллеги, студента,
+  соавтора), который разговора не видел. Всегда PDF из LaTeX, рисунки внутри документа.
+  Каждое число опирается на файл, внутренняя кухня проекта во внешний отчёт не попадает,
+  а готовый PDF агент перечитывает постранично. Нужен LaTeX.
 - **`meeting-memo`** — из записи встречи (Телемост, Zoom, диктофон) или её сырой
   расшифровки сделать мемо, по которому можно действовать: решения, сроки с днём
   недели, позиции участников, поручения «кто / что / когда», открытые вопросы. На выходе
