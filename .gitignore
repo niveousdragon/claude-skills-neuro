@@ -10,3 +10,7 @@ Thumbs.db
 # Claude local
 .claude/settings.local.json
 .analysis/
+
+# Local, not for the public repo: third-party reference PDF, Flight Control log
+ai-writing-in-the-llm-era.pdf
+artifact_gate.jsonl
