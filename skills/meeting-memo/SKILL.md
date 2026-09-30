@@ -56,8 +56,7 @@ set up, `python transcribe.py --check` is enough.
 
 ## Step 2. Gather context before writing
 
-The transcript alone does not tell you who "Константин Владимирович / Владимир
-Владимирович" is. Before writing, look for:
+The transcript alone does not tell you who "Иван Петрович / Пётр Петрович" is. Before writing, look for:
 - earlier memos and transcripts of the same series (same folder, project notes);
 - the document the meeting is about (application draft, paper, plan). Page and
   section numbers said aloud tell you which version the speakers had in front of them;
@@ -66,7 +65,7 @@ The transcript alone does not tell you who "Константин Владими�
 
 Resolve names from this context. Record every correction you made (misheard → real
 name) for the check list in the memo. When the sources disagree with each other (one
-memo says "Александр", this recording says "Алексей" throughout), do not pick: write
+memo says "Сергей", this recording says "Семён" throughout), do not pick: write
 the initials and put both variants on the check list.
 
 ## Step 3. Read the whole transcript, then write
