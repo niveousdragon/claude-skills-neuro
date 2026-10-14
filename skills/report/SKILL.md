@@ -17,11 +17,12 @@ A report is read by someone who was not inside the agent's work. Pick the mode b
 ## Step 1. Facts before prose
 
 1. **Name the central object from the primary source, in one sentence, before writing.** For "how X works" that is the function users actually call (find it through callers, examples, tests), not the helpers it calls. For results it is the latest run the project relies on, not a superseded one.
-2. **Every number has a file behind it.** When a summary note and the analysis tables disagree, the tables win; say so in the fact sheet. Keep a fact sheet beside the report: claim → file and line/table/log. A claim without a source is removed or marked as the agent's judgement.
+2. **Every number is read from the thing the sentence names.** A number said to be "in the summary tables", "in the released file" or "what the function returns" is read from that table, file or call output — the one the reader can open — never from your own recount of the data behind it. The deliverable may apply a threshold, an exclusion or a merge that your recount does not, and then the report describes tables that do not exist. Keep a fact sheet beside the report, one row per number or per group read from the same place: claim → what is counted (unit, filters, which sessions or subjects) → file and sheet/column/line. These are not sources: the task prompt, a chat message, a summary note, an earlier version of this report, a count file with no script that wrote it. A number that arrives from one of them is re-read from the primary file before it is used; a claim still without a source is removed or marked as the agent's judgement.
    - Report on results: no reruns of the analysis. Arithmetic on existing tables is allowed and marked "derived" in the fact sheet.
    - Report on how something works: the numbers and examples come from a script saved next to the report; its output is the source.
 3. **For every "A beats B" claim, check that B is a fair baseline** (same neurons, same data, same denominator). A comparison inherited from the analysis files is not checked just because it is in a file.
-4. **Figures are rebuilt by a script saved next to the report**, from those same files, into `figures/` beside the `.tex`: vector `.pdf` for plots, `.png` (≥150 dpi) for images and heatmaps, always with `bbox_inches="tight"` so labels are not cut off. Every results section and the worked example get a figure; a section without one says why (a single number, a table is clearer).
+4. **Check that the numbers can all be true together, before writing.** Write down the relations they must satisfy and test each: a total or an "any of" row is not smaller than any of its parts; a part is not larger than its whole; rows of one table are counted under the same filters; a before/after pair counts the same set; one quantity is one number in the summary, the table and the figure. A number that breaks a relation, or that surprises you, is traced to the primary file before anything is written about it. The explanation of an oddity is a claim like any other: it gets a fact-sheet row or it is not written — never a plausible sentence in a caption.
+5. **Figures are rebuilt by a script saved next to the report**, from those same files, into `figures/` beside the `.tex`: vector `.pdf` for plots, `.png` (≥150 dpi) for images and heatmaps, always with `bbox_inches="tight"` so labels are not cut off. Every results section and the worked example get a figure; a section without one says why (a single number, a table is clearer).
 
 ## Step 2. The shape
 
@@ -50,6 +51,8 @@ It describes the subject as it is now. It never mentions our versions ("in the p
 
 ## Step 2b. The document
 
+**Name the report by its content.** The folder, the `.tex` and the PDF share one name, `report-<topic>-<YYYY-MM-DD>`: `<topic>` is two to four lowercase Latin words joined by hyphens that say what the report is about, the date is the local date of the build — `report-intense-changes-2026-10-06/report-intense-changes-2026-10-06.pdf`. Never a bare `report.pdf`, and no `final`, `new` or `v2` in the name; a second version made the same day that has to stay beside the first gets `-2`. A markdown report is named the same way. The files that only accompany it (`facts.md`, `figures/`, the figure script) keep plain names inside the folder.
+
 Start from this skeleton (compiles with pdfLaTeX, Cyrillic included):
 
 ```latex
@@ -75,13 +78,14 @@ Start from this skeleton (compiles with pdfLaTeX, Cyrillic included):
 - Each figure is referenced from the text (`рис.~\ref{fig:result1}`) next to the claim it supports; the caption says what to look at, not only what is plotted.
 - Tables go in `tabular` with `booktabs`, numbers copied from the fact sheet, not retyped. A table can stand in for a figure where exact values matter more than the shape.
 - Russian text: quotes as `<<…>>` (prints «…»), not ``` ``…'' ```.
-- Build: `latexmk -pdf -interaction=nonstopmode -halt-on-error report.tex` (or `pdflatex` twice, so references resolve).
+- Build: `latexmk -pdf -interaction=nonstopmode -halt-on-error report-<topic>-<date>.tex` (or `pdflatex` twice, so references resolve).
 
 ## Step 3. Gates before hand-off
 
 | Gate | Operator | External |
 |---|---|---|
-| Every number traced to the fact sheet (a separate file) | yes | yes |
+| Every number traced to the fact sheet (a separate file); every relation from Step 1.4 checked | yes | yes |
+| **Source check**: a fresh subagent gets the PDF and the paths to the primary files the report describes — not the fact sheet, not the figure script, not your own count files — with the source-check prompt below. Every mismatch is settled at the source: either the number changes or the words saying what it is change. "Could not find" means the label is unclear or the source is wrong, not that the check passed. Run it before the reader gates | REQUIRED | REQUIRED |
 | **PDF builds clean**: the build exits 0; the `.log` has no `undefined` references, no `File ... not found`; every file in `figures/` appears in the log as `<use figures/...>` or `<figures/...>` — a figure built but not included is an error. Count figures by the log, not by `pymupdf` `get_images()`: vector figures are not raster images and it reports 0 | REQUIRED | REQUIRED |
 | **Look at the pages**: render every page to PNG (e.g. `pymupdf`: `page.get_pixmap(dpi=80)`) and view them; fix cut-off labels, unreadable fonts, figures pushed to the end, overfull tables | REQUIRED | REQUIRED |
 | **Leak scan**: list every name specific to our conversation (people, task numbers, internal stage labels, run ids, nicknames, local paths); search the final text for each; fix every hit outside the reproduction section | — | REQUIRED |
@@ -89,6 +93,8 @@ Start from this skeleton (compiles with pdfLaTeX, Cyrillic included):
 | **Naive reader**: a fresh subagent gets only the path to the final file (the PDF if there is one; the text itself if there is no file) and the naive prompt below; check each error it reports against the source before fixing | only if the report also goes to someone outside the conversation | REQUIRED |
 | `avoid-ai-writing` in edit mode on the final text (for Russian text apply its structural patterns: filler, hedging, triads, promotional tone). Where it conflicts with the shape above, the shape wins: bold claims in Итог stay; a Russian dash stays where grammar requires it | yes | yes |
 | The text cites literature → the bibliography is built with `bibliography-lockfile`, never typed from memory | if cited | if cited |
+
+Source-check prompt: *"Here is a report and the files it describes. Do not trust the report. For every number on the first two pages and in every table: (1) say what the text claims the number is and where it says it comes from; (2) find it yourself in the files; (3) answer match / mismatch (give your value) / could not find. Then list every pair of numbers in the report that cannot both be true: a total smaller than one of its parts, one quantity with two values, rows of one table that look counted in different ways."* After numbers change, run it again on the new PDF.
 
 Decision-reader prompt: *"Read only the first two pages. Report: (1) the decision the reader of this report has to make, the options, and the author's recommendation, in your words; (2) every number on these pages you did not need to understand the decision or trust the recommendation; (3) anything you would have to read further to decide."* After cutting more than a sentence, run it once more on the new version. A fix after this reader never adds text to page 1 to answer "why" — that goes to По выводам.
 
@@ -98,11 +104,11 @@ If the fixes after the naive reading were substantial, run it again. If you did 
 
 ## When another agent writes the report
 
-If you hand the report to a worker or subagent, its prompt opens with: who reads it, and the decision they are making (options, your recommendation if you have one). Then the sources — the current results only, not the notes of retracted checks. Do not give it a list of things that "must be mentioned": the shape above decides what goes in. Tell it to use this skill in operator mode.
+If you hand the report to a worker or subagent, its prompt opens with: who reads it, and the decision they are making (options, your recommendation if you have one). Then the sources — the current results only, not the notes of retracted checks — as paths to the primary files, not as numbers and not as ready conclusions: a number typed into the prompt is copied into the report with "the task" as its source, and nobody reads the file again. The same holds when a report is updated: numbers kept from the previous version are traced again, not inherited. Do not give it a list of things that "must be mentioned": the shape above decides what goes in. Tell it to use this skill in operator mode.
 
 ## Step 4. Hand-off
 
-Deliver the PDF, with the `.tex`, `figures/`, the figure script and the fact sheet beside it, in the folder the user named (else the run's output folder). For Word, convert the same `.tex` with `tex-to-docx`. Tell the user the PDF's path first; if the hand-off message can show images, show the first page or the key figure. Then: which mode, which gates passed, what the naive reader found and what was fixed, which gate was not run, and the one decision needed from them.
+Deliver the folder `report-<topic>-<date>/`: the PDF, with the `.tex`, `figures/`, the figure script and the fact sheet beside it, in the place the user named (else the run's output folder). For Word, convert the same `.tex` with `tex-to-docx`. Tell the user the PDF's path first; if the hand-off message can show images, show the first page or the key figure. Then: which mode, which gates passed, how many numbers the source check compared and what it found, what the naive reader found and what was fixed, which gate was not run, and the one decision needed from them.
 
 ## Common mistakes
 
@@ -111,6 +117,10 @@ Deliver the PDF, with the `.tex`, `figures/`, the figure script and the fact she
 | The report is a `.md` with no figures, or with figure paths in the text | `.tex` → PDF with every figure included (Step 2b); `.md` only on explicit request, with figures embedded |
 | Figures built, PDF compiled, but a figure never made it in or its labels are cut off | The build and look-at-the-pages gates |
 | The report is built around a helper or an old run because it came up first in the conversation | Step 1.1: name the central object from callers and usage |
+| A table captioned "numbers in the summary tables" holds the agent's own recount, which skipped the tables' threshold | Step 1.2: read the number from the file the sentence names; the source check |
+| "Any object" comes out smaller than each single object, and a caption explains why | Step 1.4: a broken relation is traced to the source; its explanation needs a fact-sheet row |
+| The fact sheet lists "the task" or "the previous version of the report" as a source | Those are not sources; re-read the primary file |
+| A dozen folders each holding `report.pdf` | `report-<topic>-<date>` for the folder, the `.tex` and the PDF |
 | The external text mentions the person, the task, internal stages, "as discussed" | Leak scan; the reader has no access to our conversation |
 | Problems open the external document; the limitations list is inflated with neighbouring code | Limitations at the end, only those of the central object |
 | A comparison from the analysis files is repeated as is, though its baseline includes the very items being tested | Step 1.3: check the baseline before writing the claim |
