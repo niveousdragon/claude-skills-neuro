@@ -1,28 +1,31 @@
 ---
 name: report
-description: Use when asked to assemble a human-readable report, summary, write-up or overview of results on a topic — for the operator who wants to go through an agent's results systematically, or for an outside reader (a colleague, student, co-author, reviewer) who has not seen the conversation. Also when the user says "собери отчёт", "сделай репорт", "pdf отчёт с результатами", "саммари по результатам", "опиши, как устроено", "чтобы человек понял", "для внешнего читателя".
+description: Use when asked to assemble a report, summary, write-up or overview of results on a topic — for the operator who wants to go through an agent's results systematically, for an outside reader (a colleague, student, co-author, reviewer) who has not seen the conversation, or for another agent (a new session, a worker, a subagent) that will continue the work. Also when the user says "собери отчёт", "сделай репорт", "pdf отчёт с результатами", "саммари по результатам", "опиши, как устроено", "чтобы человек понял", "для внешнего читателя", "отчёт для агента", "передай следующей сессии", "handoff", "чтобы другой агент продолжил".
 ---
 
 # Report
 
 ## Overview
 
-A report is read by someone who was not inside the agent's work. Pick the mode by one question: **will the reader have seen this conversation?**
+A report is read by someone who was not inside the agent's work. Pick the mode by two questions: **is the reader a person or an agent, and has the person seen this conversation?**
 
-- **Yes → operator report.** The reader knows the project but not what the agent read, ran and concluded. Goal: they understand the result and make the decision at hand. It is a decision document, not a record of the work.
-- **No, or unsure → external report.** The reader has nothing but the document. Goal: they understand the subject and can act on it without asking anyone.
+- **An agent (a new session, a worker, a subagent) that continues the work → agent report.** The reader has no memory of the conversation but reads files and code as fast as you do. Goal: it knows where the work stands, does not redo what was settled or rejected, and starts the next step from the right file.
+- **A person who saw it → operator report.** The reader knows the project but not what the agent read, ran and concluded. Goal: they understand the result and make the decision at hand. It is a decision document, not a record of the work.
+- **A person who did not, or unsure → external report.** The reader has nothing but the document. Goal: they understand the subject and can act on it without asking anyone.
 
-**Both modes produce the same kind of file: a LaTeX source compiled to a PDF, with every figure inside the document.** A report is read page by page, next to its figures; a `.md` with figure paths in the text is not a report. Write `.md` only if the user asked for markdown by name — and even then embed each figure with `![…](relative/path.png)`, never leave it as a path.
+**The two reports for people are a LaTeX source compiled to a PDF, with every figure inside the document.** A person reads page by page, next to the figures; a `.md` with figure paths in the text is not a report for a person. Write `.md` for a person only if the user asked for markdown by name — and even then embed each figure with `![…](relative/path.png)`, never leave it as a path.
+
+**The agent report is one markdown file: no LaTeX, no PDF, no rebuilt figures.** An agent opens paths; a PDF is something it has to extract text from. Existing plots are given as absolute paths.
 
 ## Step 1. Facts before prose
 
-1. **Name the central object from the primary source, in one sentence, before writing.** For "how X works" that is the function users actually call (find it through callers, examples, tests), not the helpers it calls. For results it is the latest run the project relies on, not a superseded one.
+1. **Name the central object from the primary source, in one sentence, before writing.** For "how X works" that is the function users actually call (find it through callers, examples, tests), not the helpers it calls. For results it is the latest run the project relies on, not a superseded one. Before relying on the files you were pointed to, look for newer ones on the same topic (later notes and artifacts, the code's current branch, `git log`): the work may have moved past them, and a report on a superseded state sends its reader the wrong way.
 2. **Every number is read from the thing the sentence names.** A number said to be "in the summary tables", "in the released file" or "what the function returns" is read from that table, file or call output — the one the reader can open — never from your own recount of the data behind it. The deliverable may apply a threshold, an exclusion or a merge that your recount does not, and then the report describes tables that do not exist. Keep a fact sheet beside the report, one row per number or per group read from the same place: claim → what is counted (unit, filters, which sessions or subjects) → file and sheet/column/line. These are not sources: the task prompt, a chat message, a summary note, an earlier version of this report, a count file with no script that wrote it. A number that arrives from one of them is re-read from the primary file before it is used; a claim still without a source is removed or marked as the agent's judgement.
    - Report on results: no reruns of the analysis. Arithmetic on existing tables is allowed and marked "derived" in the fact sheet.
    - Report on how something works: the numbers and examples come from a script saved next to the report; its output is the source.
 3. **For every "A beats B" claim, check that B is a fair baseline** (same neurons, same data, same denominator). A comparison inherited from the analysis files is not checked just because it is in a file.
 4. **Check that the numbers can all be true together, before writing.** Write down the relations they must satisfy and test each: a total or an "any of" row is not smaller than any of its parts; a part is not larger than its whole; rows of one table are counted under the same filters; a before/after pair counts the same set; one quantity is one number in the summary, the table and the figure. A number that breaks a relation, or that surprises you, is traced to the primary file before anything is written about it. The explanation of an oddity is a claim like any other: it gets a fact-sheet row or it is not written — never a plausible sentence in a caption.
-5. **Figures are rebuilt by a script saved next to the report**, from those same files, into `figures/` beside the `.tex`: vector `.pdf` for plots, `.png` (≥150 dpi) for images and heatmaps, always with `bbox_inches="tight"` so labels are not cut off. Every results section and the worked example get a figure; a section without one says why (a single number, a table is clearer).
+5. **Figures for a person's report are rebuilt by a script saved next to the report**, from those same files, into `figures/` beside the `.tex`: vector `.pdf` for plots, `.png` (≥150 dpi) for images and heatmaps, always with `bbox_inches="tight"` so labels are not cut off. Every results section and the worked example get a figure; a section without one says why (a single number, a table is clearer).
 
 ## Step 2. The shape
 
@@ -41,6 +44,18 @@ What stays out:
 
 The operator's own principles (their `CLAUDE.md`: conclusion first, what is needed from them, plain fractions, no filler) apply to the report as written rules; if they define a report format, it overrides this one. Project names are fine; run ids and paths only in Файлы.
 
+**Agent report** — one `.md`, under about 1500 words not counting paths; its size is held by the line limits below, not by a word count:
+1. **Состояние** — 3–6 lines: the question, where it stands now (what is decided and by whom), what the reader is expected to do next, and which decisions belong to the operator, not to the reader.
+2. **Установлено** — numbered conclusions, one line each: the claim, the number it rests on, and right after it the absolute path to where that number is printed (`file:line`, a JSON key, a table column, the script that prints it). These inline sources are the fact sheet; there is no separate `facts.*` file. A decision (the operator's, or one recorded in a note) is sourced the same way, to where it is written down: the note, or the chat log with its timestamp.
+3. **Отвергнуто — не повторять** — every superseded version, retracted check and dead end, one line each: what was tried, why it was dropped, the path to the evidence. An agent without memory retries whatever is not listed here.
+4. **Открыто** — each open question with what is known, the next concrete step, and whose call it is.
+5. **Как воспроизвести** — the commands, the folder to run them from, what each writes or prints, dependencies between folders (a script reading another folder by absolute path), how long it runs if known.
+6. **Файлы** — absolute paths, most important first, one line each on what is inside; superseded files marked as such.
+
+Wherever a file is linked, a file whose own conclusion has since been overruled (a note recommending what the operator rejected, a "summary" section that predates the decision) says so beside the link; otherwise the reader opens it and follows it.
+
+Details live in the files, not in the report: an algorithm, a long table or a derivation that a file already states is one line with its path and section. Copy a detail only if the reader cannot act without it and no file states it plainly. Define the project's own terms (verdict names, group labels) once; general terms of the field and of code need no definition. Paths, run ids and branch names are welcome anywhere; secrets and tokens are not.
+
 **External report:**
 1. Title and one paragraph: what this is, for whom, what the reader can do after reading.
 2. The subject in the order the reader needs it: what it does → what can be set → what comes out → a worked example with a figure → how well it works → for code, the neighbouring functions and how they differ. Every term the reader needs is defined at first use.
@@ -50,6 +65,8 @@ The operator's own principles (their `CLAUDE.md`: conclusion first, what is need
 It describes the subject as it is now. It never mentions our versions ("in the previous draft"), people, tasks, stages or run ids from our work, and it gives local paths only in the reproduction section. Names of functions the reader will call are fine anywhere. Timings and other machine-dependent numbers say so.
 
 ## Step 2b. The document
+
+The agent report takes only the naming rule from this step.
 
 **Name the report by its content.** The folder, the `.tex` and the PDF share one name, `report-<topic>-<YYYY-MM-DD>`: `<topic>` is two to four lowercase Latin words joined by hyphens that say what the report is about, the date is the local date of the build — `report-intense-changes-2026-10-06/report-intense-changes-2026-10-06.pdf`. Never a bare `report.pdf`, and no `final`, `new` or `v2` in the name; a second version made the same day that has to stay beside the first gets `-2`. A markdown report is named the same way. The files that only accompany it (`facts.md`, `figures/`, the figure script) keep plain names inside the folder.
 
@@ -82,17 +99,19 @@ Start from this skeleton (compiles with pdfLaTeX, Cyrillic included):
 
 ## Step 3. Gates before hand-off
 
-| Gate | Operator | External |
-|---|---|---|
-| Every number traced to the fact sheet (a separate file); every relation from Step 1.4 checked | yes | yes |
-| **Source check**: a fresh subagent gets the PDF and the paths to the primary files the report describes — not the fact sheet, not the figure script, not your own count files — with the source-check prompt below. Every mismatch is settled at the source: either the number changes or the words saying what it is change. "Could not find" means the label is unclear or the source is wrong, not that the check passed. Run it before the reader gates | REQUIRED | REQUIRED |
-| **PDF builds clean**: the build exits 0; the `.log` has no `undefined` references, no `File ... not found`; every file in `figures/` appears in the log as `<use figures/...>` or `<figures/...>` — a figure built but not included is an error. Count figures by the log, not by `pymupdf` `get_images()`: vector figures are not raster images and it reports 0 | REQUIRED | REQUIRED |
-| **Look at the pages**: render every page to PNG (e.g. `pymupdf`: `page.get_pixmap(dpi=80)`) and view them; fix cut-off labels, unreadable fonts, figures pushed to the end, overfull tables | REQUIRED | REQUIRED |
-| **Leak scan**: list every name specific to our conversation (people, task numbers, internal stage labels, run ids, nicknames, local paths); search the final text for each; fix every hit outside the reproduction section | — | REQUIRED |
-| **Decision reader**: a fresh subagent gets only the PDF and the decision prompt below; every number it marks as not needed is removed from pages 1–2; if it cannot state the decision and your recommendation, rewrite page 1 | REQUIRED | — |
-| **Naive reader**: a fresh subagent gets only the path to the final file (the PDF if there is one; the text itself if there is no file) and the naive prompt below; check each error it reports against the source before fixing | only if the report also goes to someone outside the conversation | REQUIRED |
-| `avoid-ai-writing` in edit mode on the final text (for Russian text apply its structural patterns: filler, hedging, triads, promotional tone). Where it conflicts with the shape above, the shape wins: bold claims in Итог stay; a Russian dash stays where grammar requires it | yes | yes |
-| The text cites literature → the bibliography is built with `bibliography-lockfile`, never typed from memory | if cited | if cited |
+| Gate | Operator | External | Agent |
+|---|---|---|---|
+| Every number traced to the fact sheet (a separate file); every relation from Step 1.4 checked | yes | yes | yes, sources inline |
+| **Source check**: a fresh subagent gets the report (the PDF, or the `.md` of an agent report) and the paths to the primary files the report describes — not the fact sheet, not the figure script, not your own count files — with the source-check prompt below. Every mismatch is settled at the source: either the number changes or the words saying what it is change. "Could not find" means the label is unclear or the source is wrong, not that the check passed. Run it before the reader gates | REQUIRED | REQUIRED | REQUIRED |
+| **PDF builds clean**: the build exits 0; the `.log` has no `undefined` references, no `File ... not found`; every file in `figures/` appears in the log as `<use figures/...>` or `<figures/...>` — a figure built but not included is an error. Count figures by the log, not by `pymupdf` `get_images()`: vector figures are not raster images and it reports 0 | REQUIRED | REQUIRED | — |
+| **Look at the pages**: render every page to PNG (e.g. `pymupdf`: `page.get_pixmap(dpi=80)`) and view them; fix cut-off labels, unreadable fonts, figures pushed to the end, overfull tables | REQUIRED | REQUIRED | — |
+| **Leak scan**: list every name specific to our conversation (people, task numbers, internal stage labels, run ids, nicknames, local paths); search the final text for each; fix every hit outside the reproduction section | — | REQUIRED | — |
+| **Decision reader**: a fresh subagent gets only the PDF and the decision prompt below; every number it marks as not needed is removed from pages 1–2; if it cannot state the decision and your recommendation, rewrite page 1 | REQUIRED | — | — |
+| **Naive reader**: a fresh subagent gets only the path to the final file (the PDF if there is one; the text itself if there is no file) and the naive prompt below; check each error it reports against the source before fixing | only if the report also goes to someone outside the conversation | REQUIRED | — |
+| **Paths resolve**: a script extracts every path from the `.md` and checks that each exists; every `file:line` points at the line that holds what the report says | — | — | REQUIRED |
+| **Cold agent**: a fresh subagent gets only the path to the `.md` and the cold-agent prompt below; every missing path, wrong pointer and thing it had to look for is fixed in the report; if it would redo something from Отвергнуто or take a decision that belongs to the operator, rewrite Состояние | — | — | REQUIRED |
+| `avoid-ai-writing` in edit mode on the final text (for Russian text apply its structural patterns: filler, hedging, triads, promotional tone). Where it conflicts with the shape above, the shape wins: bold claims in Итог stay; a Russian dash stays where grammar requires it | yes | yes | — |
+| The text cites literature → the bibliography is built with `bibliography-lockfile`, never typed from memory | if cited | if cited | if cited |
 
 Source-check prompt: *"Here is a report and the files it describes. Do not trust the report. For every number on the first two pages and in every table: (1) say what the text claims the number is and where it says it comes from; (2) find it yourself in the files; (3) answer match / mismatch (give your value) / could not find. Then list every pair of numbers in the report that cannot both be true: a total smaller than one of its parts, one quantity with two values, rows of one table that look counted in different ways."* After numbers change, run it again on the new PDF.
 
@@ -102,19 +121,27 @@ Naive-reader prompt: *"You know nothing about the project or who wrote this. Rea
 
 If the fixes after the naive reading were substantial, run it again. If you did not, say so.
 
+Cold-agent prompt: *"You are taking over this work in a new session and know only this file. (1) In your words: where the work stands, what is decided and by whom, and what you will do first. (2) What you will not redo, and why. (3) Open the files the report gives for your first step and for every number in Установлено: which paths are missing, and where a file does not say what the report claims. (4) What you had to look for that the report should have given. (5) What in the report you did not need to start."* Cut from sections 1–4 what it lists under (5) unless another answer depends on it; Как воспроизвести and Файлы are reference and stay.
+
 ## When another agent writes the report
 
-If you hand the report to a worker or subagent, its prompt opens with: who reads it, and the decision they are making (options, your recommendation if you have one). Then the sources — the current results only, not the notes of retracted checks — as paths to the primary files, not as numbers and not as ready conclusions: a number typed into the prompt is copied into the report with "the task" as its source, and nobody reads the file again. The same holds when a report is updated: numbers kept from the previous version are traced again, not inherited. Do not give it a list of things that "must be mentioned": the shape above decides what goes in. Tell it to use this skill in operator mode.
+If you hand the report to a worker or subagent, its prompt opens with: who reads it, and the decision they are making (options, your recommendation if you have one). Then the sources — the current results only, not the notes of retracted checks — as paths to the primary files, not as numbers and not as ready conclusions: a number typed into the prompt is copied into the report with "the task" as its source, and nobody reads the file again. The same holds when a report is updated: numbers kept from the previous version are traced again, not inherited. Do not give it a list of things that "must be mentioned": the shape above decides what goes in. Tell it to use this skill in operator mode, or in agent mode when the report is for a further agent. A subagent that is not allowed to write files returns the report as text; you save it under its name and run the gates on the saved file.
 
 ## Step 4. Hand-off
 
-Deliver the folder `report-<topic>-<date>/`: the PDF, with the `.tex`, `figures/`, the figure script and the fact sheet beside it, in the place the user named (else the run's output folder). For Word, convert the same `.tex` with `tex-to-docx`. Tell the user the PDF's path first; if the hand-off message can show images, show the first page or the key figure. Then: which mode, which gates passed, how many numbers the source check compared and what it found, what the naive reader found and what was fixed, which gate was not run, and the one decision needed from them.
+Agent report: deliver `report-<topic>-<date>.md` where the next agent will look (the place the user named, else the project's artifacts or the run's output folder). Give its path first, then which gates passed and what the cold agent found.
+
+Reports for people: deliver the folder `report-<topic>-<date>/`: the PDF, with the `.tex`, `figures/`, the figure script and the fact sheet beside it, in the place the user named (else the run's output folder). For Word, convert the same `.tex` with `tex-to-docx`. Tell the user the PDF's path first; if the hand-off message can show images, show the first page or the key figure. Then: which mode, which gates passed, how many numbers the source check compared and what it found, what the naive reader found and what was fixed, which gate was not run, and the one decision needed from them.
 
 ## Common mistakes
 
 | Mistake | Instead |
 |---|---|
-| The report is a `.md` with no figures, or with figure paths in the text | `.tex` → PDF with every figure included (Step 2b); `.md` only on explicit request, with figures embedded |
+| A report for the next agent is built as a multi-page PDF with redrawn figures | Agent report: one `.md`, plots as paths |
+| The agent report retells the algorithm and every table from the analysis notes | One line and a path; the file already says it |
+| The agent report drops dead ends as the operator report does, and the next session tries them again | Отвергнуто — не повторять, one line each with evidence |
+| The report describes the files it was pointed to, while newer notes have already changed the decision | Step 1.1: look for newer files on the topic before writing |
+| A report for a person is a `.md` with no figures, or with figure paths in the text | `.tex` → PDF with every figure included (Step 2b); `.md` only on explicit request, with figures embedded |
 | Figures built, PDF compiled, but a figure never made it in or its labels are cut off | The build and look-at-the-pages gates |
 | The report is built around a helper or an old run because it came up first in the conversation | Step 1.1: name the central object from callers and usage |
 | A table captioned "numbers in the summary tables" holds the agent's own recount, which skipped the tables' threshold | Step 1.2: read the number from the file the sentence names; the source check |
