@@ -47,6 +47,13 @@ The output has two parts, in this order.
 - Rebuttal: concede what the reviewer raised and what is true, at its true scope. Do not
   bring up weaknesses nobody raised.
 
+**Before handing over Part 1, sort it.** Go through it sentence by sentence and label each
+one: *result* (what was measured or shown), *meaning* (what it establishes), or *doubt*
+(a weakness, a missing control, a caution, an admission). Every *doubt* sentence is moved
+to Part 2, including a whole limitations paragraph and an opening concession in a rebuttal.
+A Limitations paragraph stays only if the author's draft already had it or the author asked
+for it.
+
 **Part 2: note to the author**, separate, in the user's language. Every concern goes here:
 circularity, missing controls, weak statistics, a claim you believe is wrong. If you think
 the central claim does not hold, that is the first line of the note — **the thesis is never
@@ -91,6 +98,8 @@ This skill overrides academic-research-skills (ARS) and any template it uses:
 - "we agree... we will remove / soften / present as case studies"
 - "partially", "modest", "weakly", "may be", "should be interpreted with caution",
   "underpowered", "not tested", "future work should"
+- "the effect was partial rather than complete", "one contributing node rather than the
+  sole...", "contributes to" in place of the claim the data show
 
 If no true strong phrasing exists, ask the author with a proposed rewording. Do not write
 the caveat.
