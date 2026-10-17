@@ -1,7 +1,11 @@
 ﻿# Установка скиллов в ~/.claude/skills (Windows / PowerShell)
-# Запуск:  .\install.ps1
-# Копирует все папки из skills/ в личный каталог скиллов Claude Code и вписывает
-# общий протокол из protocol/CLAUDE.md в ~/.claude/CLAUDE.md.
+# Запуск:  .\install.ps1                 (только скиллы)
+#          .\install.ps1 -WithProtocol   (ещё и общий протокол в ~/.claude/CLAUDE.md)
+# Копирует все папки из skills/ в личный каталог скиллов Claude Code. Общий протокол из
+# protocol/CLAUDE.md вписывается только по флагу: это личный файл правил пользователя,
+# и менять его можно лишь с его согласия.
+
+param([switch]$WithProtocol)
 
 $ErrorActionPreference = "Stop"
 
@@ -30,6 +34,15 @@ foreach ($skill in $skills) {
         Write-Host ("Ставлю   {0}" -f $skill.Name) -ForegroundColor Green
     }
     Copy-Item -Recurse -Force $skill.FullName $target
+}
+
+if (-not $WithProtocol) {
+    Write-Host ""
+    Write-Host ("Готово. Установлено скиллов: {0}" -f $skills.Count) -ForegroundColor Green
+    Write-Host ("Каталог: {0}" -f $dest)
+    Write-Host "Общий протокол в ~/.claude/CLAUDE.md не трогал (вписать: .\install.ps1 -WithProtocol)."
+    Write-Host "Открой Claude Code и спроси: «Какие скиллы тебе доступны?»"
+    exit 0
 }
 
 # Общий протокол вписывается в ~/.claude/CLAUDE.md размеченным блоком: при обновлении

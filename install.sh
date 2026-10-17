@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Установка скиллов в ~/.claude/skills (macOS / Linux)
-# Запуск:  ./install.sh
-# Копирует все папки из skills/ в личный каталог скиллов Claude Code и вписывает
-# общий протокол из protocol/CLAUDE.md в ~/.claude/CLAUDE.md.
+# Запуск:  ./install.sh                  (только скиллы)
+#          ./install.sh --with-protocol  (ещё и общий протокол в ~/.claude/CLAUDE.md)
+# Копирует все папки из skills/ в личный каталог скиллов Claude Code. Общий протокол из
+# protocol/CLAUDE.md вписывается только по флагу: это личный файл правил пользователя,
+# и менять его можно лишь с его согласия.
 
 set -euo pipefail
+
+with_protocol=0
+[ "${1:-}" = "--with-protocol" ] && with_protocol=1
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 src="$script_dir/skills"
@@ -34,6 +39,15 @@ done
 
 if [ "$count" -eq 0 ]; then
     echo "В skills/ нет ни одного скилла."
+    exit 0
+fi
+
+if [ "$with_protocol" -eq 0 ]; then
+    echo ""
+    echo "Готово. Установлено скиллов: $count"
+    echo "Каталог: $dest"
+    echo "Общий протокол в ~/.claude/CLAUDE.md не трогал (вписать: ./install.sh --with-protocol)."
+    echo "Открой Claude Code и спроси: «Какие скиллы тебе доступны?»"
     exit 0
 fi
 
