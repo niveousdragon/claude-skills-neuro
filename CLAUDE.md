@@ -31,7 +31,7 @@
 
 В `skills/` лежат `deep-analysis`, `figure-alignment`, `figure-audit`, `tex-to-docx`, `share-figure`,
 `auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile`,
-`msu-publication-clearance`, `meeting-memo`, `report` и `avoid-ai-writing`. Их нужно
+`msu-publication-clearance`, `meeting-memo`, `report`, `paper-big-picture` и `avoid-ai-writing`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -45,10 +45,20 @@
   каждую папку из `skills/<имя>` в `~/.claude/skills/<имя>` своими файловыми
   инструментами. Результат тот же — это всего лишь копирование папок.
 
+**Общий протокол.** Кроме скиллов, установщик вписывает в `~/.claude/CLAUDE.md` общие
+правила работы агента из `protocol/CLAUDE.md`: их приоритет над любыми скиллами и плагинами,
+честность с пользователем, «сначала главное», правила коммитов и проверок. Они стоят в начале
+файла между строками-метками `<!-- claude-skills-neuro:protocol:begin ... -->` и
+`<!-- claude-skills-neuro:protocol:end -->`. При повторной установке заменяется только этот
+блок, а свои правила пользователя вне него не трогаются; прежняя версия файла сохраняется
+рядом как `CLAUDE.md.bak-<дата>`. Если ставишь вручную, сделай то же самое: блок с метками в
+начало файла (или замена старого блока), остальное без изменений. Правки протокола делаются
+в `protocol/CLAUDE.md` этого репозитория, не в установленной копии.
+
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
 `figure-alignment/`, `figure-audit/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
 `lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/`,
-`meeting-memo/`, `report/` и `avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+`meeting-memo/`, `report/`, `paper-big-picture/` и `avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
 в `msu-publication-clearance/` — `fill_clearance.py`,
 в `meeting-memo/` — `transcribe.py`, `setup.ps1` и `setup.sh`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
@@ -150,7 +160,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все пятнадцать:
+все шестнадцать:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
@@ -166,11 +176,13 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `report` | `~/.claude/skills/report/SKILL.md` | папка на месте |
 | `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py`, `setup.ps1`, `setup.sh` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
+| `paper-big-picture` | `~/.claude/skills/paper-big-picture/SKILL.md` | папка на месте |
+| общий протокол | блок с метками `claude-skills-neuro:protocol` в `~/.claude/CLAUDE.md` | блок на месте, один |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все пятнадцать
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все шестнадцать
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -252,6 +264,15 @@ Code. **Ты, скорее всего, не можешь выполнить их
   читателя, собранный из того же `.md` без пометок.
   Если расшифровки нет, делает её сам скриптом `transcribe.py` (установка — `setup.ps1`);
   на обычном компьютере это занимает в 1–1,5 раза больше времени, чем шла встреча.
+- **`paper-big-picture`** — писать и править текст статьи, тезисов, ответа рецензентам;
+  рецензировать рукопись; разбирать замечания рецензентов и автоматических систем. Сначала
+  проход «с закрытой книгой»: что утверждает работа, на чём держится, какой вопрос задаст
+  живой рецензент, — и только потом детали. В тексте статьи — верные утверждения о том, что
+  показано, без оговорок «partially / modest / should be interpreted with caution»; все
+  сомнения и слабые места — отдельной запиской автору, решает он. Рецензия начинается с
+  вердикта и не больше трёх решающих вопросов, первый из них — что работа даёт сверх
+  известного. Главнее правил `academic-research-skills`: незакрытые замечания не превращаются
+  в «Acknowledged Limitations», квоты на слабости не выполняются.
 - **`avoid-ai-writing`** — вычистить из текста приметы машинного письма: частокол тире,
   злоупотребление жирным, «правило трёх», конструкцию «не X, а Y», шаблонные концовки,
   разговорные хвосты вроде «надеюсь, это поможет», расплывчатые ссылки на «экспертов».

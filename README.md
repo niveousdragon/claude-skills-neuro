@@ -55,13 +55,18 @@ Claude Code.
 **Проверка:** спроси «Какие скиллы тебе доступны?» — в списке должны быть
 `deep-analysis`, `figure-alignment`, `figure-audit`, `tex-to-docx`, `share-figure`,
 `auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile`,
-`msu-publication-clearance`, `meeting-memo`, `report`, `avoid-ai-writing`,
+`msu-publication-clearance`, `meeting-memo`, `report`, `paper-big-picture`, `avoid-ai-writing`,
 скиллы из `superpowers`,
 команды `/ars-*` и `skill-creator`.
 
 ---
 
 ## Что входит в набор
+
+- **Общие правила работы агента** — установка вписывает их в начало твоего
+  `~/.claude/CLAUDE.md`: агент честно возражает, когда видит ошибку, сначала смотрит на
+  главное, а не на мелочи, и эти правила главнее любых скиллов и плагинов. Свои правила
+  можно дописывать ниже — при обновлении они сохраняются.
 
 Установка подключает несколько групп возможностей. Какие именно скиллы внутри —
 знать не нужно: просто описывай задачу своими словами, и Клод сам подтянет
