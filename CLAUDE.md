@@ -31,7 +31,8 @@
 
 В `skills/` лежат `deep-analysis`, `figure-alignment`, `figure-audit`, `tex-to-docx`, `share-figure`,
 `auditing-structural-debt`, `lossless-doc-compress`, `bibliography-lockfile`,
-`msu-publication-clearance`, `meeting-memo`, `report`, `paper-big-picture` и `avoid-ai-writing`. Их нужно
+`msu-publication-clearance`, `meeting-memo`, `report`, `paper-big-picture`, `avoid-ai-writing`,
+`paper-claim-audit` и `paper-map`. Их нужно
 скопировать в `~/.claude/skills/` (по папке на скилл). Копируй папку целиком:
 у скилла могут быть вспомогательные файлы рядом с `SKILL.md` (например, у
 `tex-to-docx` — скрипт-конвертер). Способ — на твой выбор:
@@ -69,7 +70,9 @@
 Проверка Шага A: в `~/.claude/skills/` появились папки `deep-analysis/`,
 `figure-alignment/`, `figure-audit/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
 `lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/`,
-`meeting-memo/`, `report/`, `paper-big-picture/` и `avoid-ai-writing/`, в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+`meeting-memo/`, `report/`, `paper-big-picture/`, `avoid-ai-writing/`, `paper-claim-audit/` и `paper-map/`,
+в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+в `paper-map/` — `paper_map.py`, `MAP_FORMAT.md` и `test_paper_map.py`,
 в `msu-publication-clearance/` — `fill_clearance.py`,
 в `meeting-memo/` — `transcribe.py`, `setup.ps1` и `setup.sh`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
@@ -115,6 +118,11 @@ Anaconda он уже есть); без Word скрипт заполняет бл
 (macOS / Linux: `bash ~/.claude/skills/meeting-memo/setup.sh`). Последняя строка должна
 быть `[OK] meeting-memo is ready`. Скачивание модели занимает время — не блокируйся:
 запускай, когда пользователь впервые принесёт запись.
+
+**Внешняя зависимость (только для `paper-map` и `paper-claim-audit`).** Программе карты
+статьи `paper_map.py` нужен Python 3 с пакетом `pyyaml` (`pip install pyyaml`; в Anaconda он
+уже есть). Проверка: `python ~/.claude/skills/paper-map/test_paper_map.py` печатает
+`ALL PASSED`. Не блокируйся: ставь, когда пользователь впервые попросит сверку или карту статьи.
 
 **Внешняя зависимость (только для `auditing-structural-debt`).** Скрипту переписи
 `census.sh` нужны git и POSIX-оболочка: на Windows это Git Bash, он ставится вместе
@@ -171,7 +179,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 
 Сверь, что установлен **весь** набор. Лучше всего — посмотреть
 `~/.claude/plugins/installed_plugins.json` и список доступных скиллов. Должны быть
-все шестнадцать (тринадцать скиллов и три плагина) и предложение общего протокола:
+все восемнадцать (пятнадцать скиллов и три плагина) и предложение общего протокола:
 
 | Компонент | Где живёт | Как проверить |
 |---|---|---|
@@ -188,12 +196,14 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py`, `setup.ps1`, `setup.sh` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
 | `paper-big-picture` | `~/.claude/skills/paper-big-picture/SKILL.md` | папка на месте |
+| `paper-claim-audit` | `~/.claude/skills/paper-claim-audit/SKILL.md` | папка на месте |
+| `paper-map` | `~/.claude/skills/paper-map/SKILL.md` | папка на месте, рядом `paper_map.py`, `MAP_FORMAT.md`, `test_paper_map.py` |
 | общий протокол | блок с метками `claude-skills-neuro:protocol` в `~/.claude/CLAUDE.md` | предложен пользователю; если согласился — блок на месте, один |
 | `superpowers` | плагин `superpowers@superpowers-marketplace` | есть в `installed_plugins.json` |
 | `academic-research-skills` | плагин `…@academic-research-skills` | есть в `installed_plugins.json` |
 | `skill-creator` | плагин `skill-creator@claude-plugins-official` | есть в `installed_plugins.json` |
 
-Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все шестнадцать
+Если чего-то не хватает — вернись к нужному шагу и доставь. Только когда все восемнадцать
 на месте, сообщи пользователю, что установка завершена, и предложи проверить
 самому: пусть спросит «Какие скиллы тебе доступны?».
 
@@ -284,6 +294,23 @@ Code. **Ты, скорее всего, не можешь выполнить их
   вердикта и не больше трёх решающих вопросов, первый из них — что работа даёт сверх
   известного. Главнее правил `academic-research-skills`: незакрытые замечания не превращаются
   в «Acknowledged Limitations», квоты на слабости не выполняются.
+- **`paper-claim-audit`** — сверить рукопись с её собственными источниками перед подачей или
+  повторной подачей. Числа в тексте сверяются со скриптами и файлами результатов, описания
+  рисунков — с рисунками, Methods — с кодом, упоминания одного результата — между собой, и
+  у каждого числа проверяется, на чём оно посчитано. Усилие задаётся заранее: по помощнику на
+  рисунок, пересчёт всего, что пересчитывается из кэшей примерно за 15 минут. Ведомость — это
+  карта статьи из `paper-map`. Итог: не больше трёх решающих расхождений, остальное по строке,
+  вопросы автору, непроверенное с причиной, время по меткам файлов. Работа долгая — часы.
+- **`paper-map`** — карта статьи: YAML-файл рядом с LaTeX-рукописью. Каждое утверждение в нём
+  связано с местами в тексте (метки-комментарии, в PDF их не видно), с источниками (файлы с
+  sha256, код по коммиту и пути) и с тем, что на нём держится. Программа `paper_map.py` проверяет
+  карту и ищет расхождения: число в тексте против источника, охват, изменившийся файл, вывод,
+  переставший держаться. Команда `impact` отвечает, что в статье заденет правка параметра или
+  перезапуск анализа: по уровням (пересчитать, переписать, перечитать), со строками текста и со
+  всеми местами в коде, где значение задано. Карта начинается с главных утверждений статьи: их
+  предлагает агент, утверждает автор, и без его согласия они не меняются; команда `argument`
+  собирает для автора страницу с ними и с тем, что их ломает. Зови перед правкой того, на чём
+  держится статья, и при работе с её версиями. Построение — часы, один раз на версию.
 - **`avoid-ai-writing`** — вычистить из текста приметы машинного письма: частокол тире,
   злоупотребление жирным, «правило трёх», конструкцию «не X, а Y», шаблонные концовки,
   разговорные хвосты вроде «надеюсь, это поможет», расплывчатые ссылки на «экспертов».
