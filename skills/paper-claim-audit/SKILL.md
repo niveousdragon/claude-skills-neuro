@@ -1,6 +1,6 @@
 ---
 name: paper-claim-audit
-description: Use when a manuscript, preprint, thesis chapter or revision must be checked against its own sources before submission or resubmission - numbers in the text against scripts and output files, figure descriptions against the figures and data, Methods against the code, and mentions of the same result against each other. Also when the user says "сверь статью с данными", "проверь числа в статье", "откуда это число", "проверь перед подачей", "аудит рукописи", "сходятся ли текст и рисунки".
+description: Use when a manuscript, preprint, thesis chapter or revision must be checked against its own sources before submission or resubmission - numbers in the text against scripts and output files, figure descriptions against the figures and data, Methods against the code, and mentions of the same result against each other. Also when the user says "сверь статью с данными", "проверь числа в статье", "откуда это число", "проверь перед подачей", "аудит рукописи", "сходятся ли текст и рисунки", "можно ли подавать", "что из находок критично".
 ---
 
 # Paper claim audit: every claim against its source, effort fixed in advance
@@ -14,7 +14,7 @@ before the audit starts and the shape of the result before it is written.
 
 Checking claims against sources is the job. Reading the paper and judging whether it is
 convincing is a review: for that use paper-big-picture. This skill uses its closed-book pass
-and its limit of three decisive items.
+and its limit of three: every CRITICAL is shown, and of the HIGH three are explained.
 
 ## Step 0. Before opening anything
 
@@ -87,19 +87,49 @@ that source. Then the argument page shows it under every main claim it weakens.
 An earlier verdict by the author or a previous reviewer is not evidence. If the data
 contradict it, report the data and quote the earlier verdict beside them.
 
-## Step 3. The findings file: its parts, in this order
+## Step 3. Levels, then the findings file
 
-1. **Decisive, at most three.** The discrepancies that change a main claim or a Discussion
-   conclusion. Each: one plain sentence of what is wrong, then the text value, the source
-   value, the source path, the node id, "checked" or "guess". Choose by consequence for the
-   paper, not by size of the discrepancy. If more than three qualify, keep the three with the
-   largest consequence and put the rest first in part 2.
-2. **The reviewer will ask** - one line each: where, text says, source says, path.
-3. **Questions for the author** - framing, choice of method, how a figure looks: matters of
-   judgement, stated as questions, never as errors.
-4. **Not checked** - each item with the reason (longer than 15 minutes, no source, source
-   changed after version).
-5. **Effort** - helpers used; wall-clock time from timestamps of files or logs, not from
+**Levels.** Every finding of `check` and every hole of its ARGUMENT section gets a level by the
+four questions of paper-map (MAP_FORMAT.md, Levels): CRITICAL - the paper's own data refute a
+main claim, or it is left without support that can be checked; HIGH - a statement of the paper
+is false; MEDIUM - not false, but not shown; LOW - form only. `check` proposes a default by the
+type of the finding. Record your reading in the map's `triage`, so that it survives the next
+version of the paper: each finding checked (when, by whom, against what) or a guess, a moved
+level with its reason, a finding of your own reading as `NOTE`.
+
+- **No CRITICAL reaches the author without an independent check.** A fresh helper verifies
+  each one against the code and the data. It gets the statement of the finding and the paths
+  to the manuscript, code and data - not the map and not your triage. Not confirmed: the level
+  goes down, with the reason.
+- **While the author has not confirmed the main claims, every CRITICAL is preliminary**,
+  relative to the proposed claims. A CRITICAL that rests only on a condition you wrote
+  (`holds_while`) goes to the author as a question: is this what the claim needs?
+- Expect most findings at HIGH: every false number or sentence is one. That is why only three
+  of them are explained below.
+
+**The findings file: its parts, in this order.**
+
+1. **Verdict, the first line**, from `check` after triage: "do not submit: N CRITICAL", "can be
+   submitted; N HIGH recommended to fix", or "clean"; "preliminary" while the main claims are
+   not confirmed.
+2. **Every CRITICAL**, however many. Each: one plain sentence of what is wrong and which main
+   claim it refutes or leaves without support; the text value, the source value, the source
+   path, the key; what the helper opened to confirm it.
+3. **HIGH.** The three with the largest consequence for the paper, explained like a CRITICAL
+   and checked by a fresh helper the same way. Choose by consequence, not by size of the
+   discrepancy. The rest one line each, in the order of the paper: where, text says, source
+   says, path, "checked" (and by whom) or "guess".
+4. **MEDIUM**, in groups by kind - no source, a scope wider than computed, Methods against the
+   code without a change of result, holes in the argument: one line per group, with the count
+   and the places.
+5. **LOW**: the count here; the list in a separate file beside the findings.
+6. **Questions for the author** - framing, choice of method, how a figure looks: matters of
+   judgement, stated as questions, never as errors. A CRITICAL resting only on your condition
+   goes here.
+7. **Not checked** - each item with the reason (longer than 15 minutes, no source, source
+   changed after version). Name what the map does not see: a proofreading of the text
+   (references to panels, wording) unless it was done. No CRITICAL does not mean a clean paper.
+8. **Effort** - helpers used; wall-clock time from timestamps of files or logs, not from
    your own estimate: the map and the audit separately.
 
 Deliver the findings file and the map beside it: the map file, its parts, the anchored copy
@@ -111,7 +141,10 @@ and the last `check` report. Do not edit the manuscript or any file outside your
 |---|---|
 | "Cannot verify: would need recomputation" for a cache-based number | recompute if it fits in 15 minutes |
 | value taken from a script written after the version | check modification date; find the source as of the version |
-| twelve items in the top tier | three; the rest one line each in part 2 |
+| twelve HIGH explained at the top | three explained; the rest one line each, in the order of the paper |
+| a CRITICAL shown without an independent check | a fresh helper checks it against code and data, without the map |
+| a CRITICAL against unconfirmed main claims shown as final | preliminary until the author confirms them |
+| a level moved without a reason | `why` in the map's `triage` |
 | only the first mention checked | every mention of the result, including figure panels and Discussion |
 | a contradicting earlier verdict taken as settled | report the data beside the verdict |
 | a judgement call reported as an error | move it to questions for the author |

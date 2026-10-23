@@ -6,6 +6,7 @@ import contextlib
 import hashlib
 import io
 import os
+import re
 import sys
 import tempfile
 import types
@@ -510,6 +511,169 @@ with tempfile.TemporaryDirectory() as d:
 
     code, out = run(pm.impact, pm.Map(str(map2)), ['P-perm'])
     check('impact shows where an unavailable source sets the value', 'library default, outside the allowed folders' in out, True)
+
+print('--- levels ---')
+for kind in ('MISMATCH', 'CONFLICT', 'INCONSISTENT', 'OVERSTATED', 'SCOPE'):
+    check(f'{kind} is HIGH by default', pm.default_level(kind), 'HIGH')
+for kind in ('UNSOURCED', 'STALE', 'AFTER-VERSION', 'ORPHAN', 'LOOSE-DISCUSSION', 'UNANSWERED', 'SINGLE-SUPPORT'):
+    check(f'{kind} is MEDIUM by default', pm.default_level(kind), 'MEDIUM')
+check('a broken support of a main claim is a CRITICAL candidate', pm.default_level('BROKEN', into_claim=True), 'CRITICAL')
+check('a broken support deeper inside is HIGH', pm.default_level('BROKEN'), 'HIGH')
+check('a main claim resting on nothing is a CRITICAL candidate', pm.default_level('NO-SUPPORT'), 'CRITICAL')
+check('the program never gives LOW', 'LOW' in pm.DEFAULT_LEVEL.values(), False)
+check('the list of what to re-check carries no level', pm.default_level('RE-CHECK'), None)
+
+
+def levels_of(out):
+    """Key -> level, in the order of the LEVELS section of a check report."""
+    sec = out.split('== LEVELS')[1].split('\n== ')[0]
+    return {mo.group(2): mo.group(1) for mo in re.finditer(r'^  (CRITICAL|HIGH|MEDIUM|LOW) +(.+?)  \[', sec, re.M)}
+
+
+def verdict_of(out):
+    return next(line for line in out.split('== LEVELS')[1].splitlines() if line.startswith('  verdict: '))
+
+
+def findings_block(out):
+    return out.split('== FINDINGS FOR THE AUTHOR')[1].split('\n== ')[0]
+
+
+def make_paper2(tmp, extra='', map_text=MAP2):
+    data = b'0.128\nKSG\nfolds=5, shuffles=5\n34\n-1.97\n95\n'
+    (tmp / 'data.txt').write_bytes(data)
+    (tmp / 'paper2.tex').write_text(PAPER2, encoding='utf-8', newline='')
+    path = tmp / 'paper2.map.yaml'
+    path.write_text(map_text % {'data': hashlib.sha256(data).hexdigest()} + extra, encoding='utf-8')
+    run(pm.place_anchors, pm.Map(str(path)))
+    return path
+
+
+with tempfile.TemporaryDirectory() as d:
+    tmp = Path(d)
+    map_path = make_paper(tmp)
+    run(pm.place_anchors, pm.Map(str(map_path)))
+    code, out = run(pm.check, pm.Map(str(map_path)))
+    lv = levels_of(out)
+    check('the broken support of a main claim is CRITICAL', lv.get('BROKEN R-resp -> DNA-dense'), 'CRITICAL')
+    check('CRITICAL comes first', next(iter(lv.values()), None), 'CRITICAL')
+    check('a failed consistency check is HIGH', lv.get('INCONSISTENT P-pix P-calib'), 'HIGH')
+    check('a restatement that oversells is HIGH', lv.get('OVERSTATED D-everywhere'), 'HIGH')
+    check('a source modified after the version is MEDIUM', lv.get('AFTER-VERSION R-n calib.txt'), 'MEDIUM')
+    check('a result in the text serving no main claim is MEDIUM', lv.get('ORPHAN R-n'), 'MEDIUM')
+    check('every finding without triage is marked', out.split('== LEVELS')[1].count('[not triaged]'), len(lv))
+    check('the verdict stops the submission', verdict_of(out).startswith('  verdict: do not submit: 1 CRITICAL'), True)
+    check('an unconfirmed main claim makes the verdict preliminary',
+          'preliminary: 1 of 1 main claims not confirmed by the author' in verdict_of(out), True)
+    crit = next(line for line in out.splitlines() if line.startswith('  CRITICAL'))
+    check('a CRITICAL nobody checked is a candidate', 'candidate' in crit, True)
+    check('a CRITICAL under an unconfirmed claim is relative to the proposed claims', 'proposed main claims' in crit, True)
+    page = pm.argument_page(pm.Map(str(map_path)), 'en')
+    check('the page opens with the verdict', '**Submission:** do not submit: 1 CRITICAL' in page.split('\n## ')[0], True)
+    page_ru = pm.argument_page(pm.Map(str(map_path)), 'ru')
+    check('the verdict in Russian', '**Подача:** подавать нельзя: 1 CRITICAL' in page_ru.split('\n## ')[0], True)
+    check('the preliminary mark in Russian', 'предварительно' in page_ru.split('\n## ')[0], True)
+
+with tempfile.TemporaryDirectory() as d:
+    tmp = Path(d)
+    main = MAIN.replace("  S_all: 'all neurons, 5 mice'\n", "  S_all: 'all neurons, 5 mice'\n  S_m1: 'mouse 1'\n")
+    part = PART.replace("holds_while: {op: '>=', value: 25}", "holds_while: {op: '>=', value: 40}")
+    part = part.replace("states: '34', scope: S_all}", "states: '34', scope: S_m1}")
+    part += """  - id: DNA-alone
+    kind: dna
+    claim: 'a main claim nothing argues for'
+"""
+    map_path = make_paper(tmp, main=main, part=part)
+    run(pm.place_anchors, pm.Map(str(map_path)))
+    (tmp / 'calib.txt').write_bytes(b'changed since it was mapped\n')
+    code, out = run(pm.check, pm.Map(str(map_path)))
+    lv = levels_of(out)
+    check('a broken support deeper inside a main claim is HIGH', lv.get('BROKEN R-resp -> D-dense'), 'HIGH')
+    check('a main claim resting on nothing is CRITICAL', lv.get('NO-SUPPORT DNA-alone'), 'CRITICAL')
+    check('a text claiming another scope is HIGH by default', lv.get('SCOPE R-resp resp-abs'), 'HIGH')
+    check('a changed source is MEDIUM', lv.get('STALE R-n calib.txt'), 'MEDIUM')
+    check('the list of what to re-check is not a leveled finding', any(k.startswith('RE-CHECK') for k in lv), False)
+    check('the verdict counts both CRITICAL', verdict_of(out).startswith('  verdict: do not submit: 2 CRITICAL'), True)
+
+with tempfile.TemporaryDirectory() as d:
+    tmp = Path(d)
+    map2 = make_paper2(tmp)
+    code, out = run(pm.check, pm.Map(str(map2)))
+    lv = levels_of(out)
+    check('a source that disagrees is HIGH by default', lv.get('CONFLICT M-est data.txt'), 'HIGH')
+    check('a number in the text that differs from the value is HIGH', lv.get('MISMATCH R-r2b drift-r'), 'HIGH')
+    check('a result without a source that can be checked is MEDIUM', lv.get('UNSOURCED R-sess'), 'MEDIUM')
+    check('a main claim on a single support is MEDIUM', lv.get('SINGLE-SUPPORT DNA-comp'), 'MEDIUM')
+    check('a working node off the text serving no main claim gets no level', 'ORPHAN R-expl' in lv, False)
+    check('without CRITICAL the verdict recommends fixing the HIGH',
+          verdict_of(out).startswith('  verdict: can be submitted; 5 HIGH recommended to fix'), True)
+    plain = findings_block(out)
+
+    triage = """triage:
+  - {finding: 'CONFLICT M-est', level: MEDIUM, checked: '2026-10-23, helper', why: 'Methods name another estimator; the slope does not depend on it'}
+  - {finding: 'CONFLICT R-expl data.txt', level: LOW, checked: guess, why: 'an explanation written into the value'}
+  - {finding: 'NOTE R-slope', level: LOW, checked: guess, what: 'the unit is spelled differently in the caption'}
+  - {finding: 'BROKEN R-gone -> DNA-comp', level: CRITICAL, checked: '2026-10-20, helper', status: fixed}
+"""
+    map2 = make_paper2(tmp, triage)
+    code, out = run(pm.check, pm.Map(str(map2)))
+    lv = levels_of(out)
+    check('triage moves a finding, with its reason', lv.get('CONFLICT M-est data.txt'), 'MEDIUM')
+    check('the reason for the move is shown', 'Methods name another estimator' in out.split('== LEVELS')[1], True)
+    check('LOW comes from triage', lv.get('CONFLICT R-expl data.txt'), 'LOW')
+    check('a note of the agent counts at its level', lv.get('NOTE R-slope'), 'LOW')
+    moved = next(line for line in out.splitlines() if line.startswith('  MEDIUM') and 'CONFLICT M-est' in line)
+    check('a triaged finding is not marked untriaged', '[not triaged]' in moved, False)
+    check('triage of a fixed finding that is gone is no error', code, 0)
+    check('the fixed finding is listed apart', 'fixed: 1' in out, True)
+    check('triage changes no finding', findings_block(out), plain)
+
+    bad = """triage:
+  - {finding: 'MISMATCH R-r2b', level: MEDIUM, checked: guess}
+  - {finding: 'CONFLICT R-nothing', level: HIGH, checked: guess}
+  - {finding: 'CONFLICT R-count', level: HIGH, checked: guess}
+  - {finding: 'CONFLICT R-count data.txt', level: HIGH, checked: guess}
+  - {finding: 'UNSOURCED R-sess', level: MEDIUM}
+"""
+    map2 = make_paper2(tmp, bad)
+    code, out = run(pm.check, pm.Map(str(map2)))
+    errs = out.split('== INTEGRITY ERRORS')[1].split('\n== ')[0]
+    check('a move without a reason is an integrity error', 'MISMATCH R-r2b' in errs and 'say why' in errs, True)
+    check('triage of a finding check does not report is an integrity error', 'CONFLICT R-nothing' in errs, True)
+    check('a finding triaged twice is an integrity error', 'triaged twice' in errs, True)
+    check('triage without checked is an integrity error', 'UNSOURCED R-sess' in errs, True)
+    check('a map with bad triage is not clean', code, 1)
+
+    still = """triage:
+  - {finding: 'UNSOURCED R-sess', level: MEDIUM, checked: guess, status: fixed}
+"""
+    map2 = make_paper2(tmp, still)
+    code, out = run(pm.check, pm.Map(str(map2)))
+    check('a finding marked fixed that check still reports is warned about',
+          'marked fixed' in out.split('== WARNINGS')[1], True)
+    check('such a finding still counts', levels_of(out).get('UNSOURCED R-sess'), 'MEDIUM')
+
+    lost = MAP2.replace("    uses: [M-est]\n", "    uses: [M-est, M-gone]\n")
+    map2 = make_paper2(tmp, '', lost)
+    code, out = run(pm.check, pm.Map(str(map2)))
+    check('a node using an unknown one is an integrity error, not a crash of the levels',
+          'R-slope: uses unknown node M-gone' in out and '== LEVELS' in out, True)
+
+    calm = MAP2.replace("    claim: 'compression is not universal'\n",
+                        "    claim: 'compression is not universal'\n    confirmed: '2026-01-15, author'\n")
+    lower = """triage:
+  - {finding: 'CONFLICT M-est', level: MEDIUM, checked: guess, why: 'a detail of Methods; the result stands'}
+  - {finding: 'CONFLICT R-expl', level: LOW, checked: guess, why: 'an explanation in the value'}
+  - {finding: 'CONFLICT R-count', level: MEDIUM, checked: guess, why: 'a working value off the text'}
+  - {finding: 'CONFLICT R-int', level: MEDIUM, checked: guess, why: 'a working value off the text'}
+  - {finding: 'MISMATCH R-r2b', level: HIGH, checked: '2026-10-23, helper', status: accepted}
+"""
+    map2 = make_paper2(tmp, lower, calm)
+    code, out = run(pm.check, pm.Map(str(map2)))
+    check('without CRITICAL and HIGH the verdict is clean', verdict_of(out).startswith('  verdict: clean'), True)
+    check('confirmed main claims make the verdict final', 'preliminary' in verdict_of(out), False)
+    check('a finding the author accepted is listed apart', 'accepted by the author: 1' in out, True)
+    page = pm.argument_page(pm.Map(str(map2)), 'en')
+    check('the page shows the clean verdict', '**Submission:** clean' in page.split('\n## ')[0], True)
 
 print('\nALL PASSED' if ok else '\nSOME FAILED')
 sys.exit(0 if ok else 1)

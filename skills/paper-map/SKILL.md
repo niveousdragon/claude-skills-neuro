@@ -52,8 +52,8 @@ Python 3 with `pyyaml`. Run it by its path, from the folder of this skill:
 
 ```
 python <skill folder>/paper_map.py place-anchors MAP.yaml          anchored copy of the paper
-python <skill folder>/paper_map.py check MAP.yaml --out R.txt      integrity, coverage, argument, findings
-python <skill folder>/paper_map.py argument MAP.yaml --lang ru     the page for the author: claims, verdicts, what breaks them
+python <skill folder>/paper_map.py check MAP.yaml --out R.txt      integrity, coverage, argument, findings, levels
+python <skill folder>/paper_map.py argument MAP.yaml --lang ru     the page for the author: submission verdict, claims, what breaks them
 python <skill folder>/paper_map.py impact MAP.yaml ID [ID ...]     what a change touches: claims at stake first
 python <skill folder>/paper_map.py trace MAP.yaml ID               what a node rests on, down to files and code
 python <skill folder>/paper_map.py strip IN.tex OUT.tex            remove anchors, for co-authors
@@ -145,6 +145,10 @@ paper takes hours: where the harness offers background workers that outlive the 
   that the diff did not touch go to the author as possibly missed. In `disagrees` and `locator`, refer to
   anchors rather than line numbers: line numbers go stale with every version.
 - **After sources change:** `check` marks them STALE and lists what depends on them as RE-CHECK.
+- **Levels of the findings.** `check` gives every finding a default level - CRITICAL, HIGH, MEDIUM, by what
+  the reader loses (MAP_FORMAT.md, Levels) - and a verdict on submission. Your reading goes into `triage`:
+  each finding checked or a guess, a moved level with its reason, your own findings from reading as
+  `NOTE`. How the levels are verified and shown to the author: paper-claim-audit, Step 3.
 - **"Where does this come from":** `trace`. **For co-authors:** `strip`.
 
 ## Common mistakes
@@ -169,5 +173,6 @@ paper takes hours: where the harness offers background workers that outlive the 
 | a true source deleted to silence a warning | different parameters on one line: `distinct_from` |
 | only the first mention of a number mapped | every place, including Discussion repeats and figure panels |
 | `impact` output taken as the answer | it proposes; each place is confirmed |
+| a level moved by feel, or kept in a report beside the map | the four questions; a moved level carries `why` in `triage` |
 | text edited and the map left behind | edit both; `check` until clean |
 | build time "about an hour" by feel | file timestamps |

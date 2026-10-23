@@ -61,6 +61,27 @@ TIERS = [
 ]
 MAIN_TIERS = ('recompute', 'rewrite', 're-read')
 
+LEVELS = ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW')
+# The level of a finding until the agent triages it, by what the reader of the paper loses: a main claim
+# that fails by the paper's own numbers or rests on nothing (CRITICAL), a statement of the paper that is
+# false (HIGH), one that is not shown (MEDIUM). LOW is form only: it comes from triage, never from here.
+DEFAULT_LEVEL = {
+    'NO-SUPPORT': 'CRITICAL',
+    'BROKEN': 'HIGH', 'MISMATCH': 'HIGH', 'CONFLICT': 'HIGH', 'INCONSISTENT': 'HIGH', 'OVERSTATED': 'HIGH',
+    'SCOPE': 'HIGH',
+    'UNSOURCED': 'MEDIUM', 'STALE': 'MEDIUM', 'AFTER-VERSION': 'MEDIUM',
+    'ORPHAN': 'MEDIUM', 'LOOSE-DISCUSSION': 'MEDIUM', 'UNANSWERED': 'MEDIUM', 'SINGLE-SUPPORT': 'MEDIUM',
+}
+TRIAGE_STATUS = ('open', 'fixed', 'accepted')
+
+
+def default_level(kind, into_claim=False):
+    """A broken support straight into a main claim breaks the claim; deeper inside, it breaks a part of it.
+    RE-CHECK lists what to look at again after a source changed: it has no level of its own."""
+    if kind == 'BROKEN' and into_claim:
+        return 'CRITICAL'
+    return DEFAULT_LEVEL.get(kind)
+
 
 def read_text(path):
     with open(path, encoding='utf-8', newline='') as f:
@@ -207,6 +228,10 @@ def source_where(s):
     return f'unavailable: {normalize_ws(s.get("unavailable", ""))}'
 
 
+def base_name(path):
+    return str(path).replace('\\', '/').rsplit('/', 1)[-1]
+
+
 def source_line(s):
     m = LINE_REF.search(str(s.get('locator', '')))
     if not m:
@@ -259,6 +284,8 @@ class Map:
         self.scopes = {str(k): v for k, v in (raw.get('scopes') or {}).items()}
         self.skips = list(raw.get('skip') or [])
         self.nodes = list(raw.get('nodes') or [])
+        # Triage is the lead's reading of the findings, kept in the main map only.
+        self.triage = list(raw.get('triage') or [])
         self.load_errors = []
         # Parts let helpers write the map in parallel, one file each; paths in a part are
         # resolved against the main map's folder, like everything else.
@@ -523,16 +550,32 @@ def paragraphs(tex, excluded_sections):
     return [(sec, blk) for sec, blk in blocks if prose_letters([l for _, l in blk]) >= 40]
 
 
+class Finding:
+    """A finding, or a hole in the argument, under the key triage names it by: 'TYPE id [where]'."""
+
+    def __init__(self, kind, nid, where='', level=None):
+        self.kind, self.nid, self.where = kind, str(nid), normalize_ws(where)
+        self.default = level or default_level(kind)
+        self.level, self.entry, self.status = self.default, None, 'open'
+
+    @property
+    def key(self):
+        return ' '.join(x for x in (self.kind, self.nid, self.where) if x)
+
+
 class Report:
     def __init__(self):
         self.errors, self.findings, self.warnings, self.info = [], [], [], []
         self.uncovered, self.unanchored = [], []
+        self.items, self.fixed = [], []
 
     def err(self, msg):
         self.errors.append(msg)
 
-    def find(self, label, msg):
+    def find(self, label, msg, nid=None, where='', level=None):
         self.findings.append(f'[{label}] {msg}')
+        if nid is not None:
+            self.items.append(Finding(label, nid, where, level))
 
     def warn(self, msg):
         self.warnings.append(msg)
@@ -549,8 +592,9 @@ def value_findings(m, tex):
     """What the map finds without opening a source: the text against each node's value and scope, the
     values and words recorded for its sources against the node, results with no source to check.
 
-    Each finding is (label, node id, message, page key, page fields): the check report prints the
-    message; the argument page shows the findings under the main claims they support.
+    Each finding is (label, node id, message, page key, page fields, where): the check report prints the
+    message; the argument page shows the findings under the main claims they support; `where` (the anchor,
+    the figure panel, the source) tells apart the findings of one node in triage.
     """
     out = []
     for nid, n in m.by_id.items():
@@ -558,6 +602,7 @@ def value_findings(m, tex):
         value_toks = number_tokens(value) if value is not None else []
         for mt in mentions_of(n):
             where = mention_where(mt, tex)
+            at = where if mt.get('figure') else str(mt.get('anchor') or '')
             states = mt.get('states')
             if states is not None:
                 stated = number_tokens(states)
@@ -574,29 +619,29 @@ def value_findings(m, tex):
                     said = f'{bound} {", ".join(bad)}'
                     out.append(('MISMATCH', nid, f'{nid} ({where}): the text says value {said}; '
                                                  f'the node value is {value}',
-                                'f_mismatch', {'said': said, 'value': value}))
+                                'f_mismatch', {'said': said, 'value': value}, at))
             elif value_toks and stated and bound is None:
                 bad = [t for t in stated if not agrees(t, value_toks)]
                 if bad:
                     out.append(('MISMATCH', nid, f'{nid} ({where}): the text says {", ".join(bad)}; '
                                                  f'the node value is {value}',
-                                'f_mismatch', {'said': ', '.join(bad), 'value': value}))
+                                'f_mismatch', {'said': ', '.join(bad), 'value': value}, at))
             if mt.get('scope') is not None and n.get('scope') is not None \
                     and str(mt['scope']) != str(n['scope']):
                 said, on = m.scopes.get(str(mt['scope'])), m.scopes.get(str(n['scope']))
                 out.append(('SCOPE', nid, f'{nid} ({where}): the text implies "{said}"; computed on "{on}"',
-                            'f_scope', {'said': said, 'value': on}))
+                            'f_scope', {'said': said, 'value': on}, at))
         srcs = sources_of(n)
         if n.get('kind') == 'result' and all(s.get('unavailable') for s in srcs):
             why = '; '.join(normalize_ws(s['unavailable']) for s in srcs)
             if why:
                 out.append(('UNSOURCED', nid, f'{nid}: result without a source that can be checked '
-                                              f'(unavailable: {why})', 'f_unavailable', {'said': why}))
+                                              f'(unavailable: {why})', 'f_unavailable', {'said': why}, ''))
             else:
-                out.append(('UNSOURCED', nid, f'{nid}: result without a source', 'f_unsourced', {}))
+                out.append(('UNSOURCED', nid, f'{nid}: result without a source', 'f_unsourced', {}, ''))
         for s in srcs:
             where = source_where(s)
-            name = where if s.get('unavailable') else where.replace('\\', '/').rsplit('/', 1)[-1]
+            name = where if s.get('unavailable') else base_name(where)
             if s.get('value') is not None and value_toks:
                 bad = [t for t in number_tokens(s['value']) if not agrees(t, value_toks)]
                 if bad:
@@ -608,15 +653,16 @@ def value_findings(m, tex):
                             if not any(t in head for t in bad) else '')
                     out.append(('CONFLICT', nid, f'{nid}: source {where} gives {s["value"]}; '
                                                  f'the node value is {value}{hint}',
-                                'f_conflict', {'where': name, 'said': s['value'], 'value': value}))
+                                'f_conflict', {'where': name, 'said': s['value'], 'value': value}, name))
             if s.get('disagrees'):
                 said = normalize_ws(s['disagrees'])
                 out.append(('CONFLICT', nid, f'{nid}: source {where} disagrees: {said}',
-                            'f_disagrees', {'where': name, 'said': said}))
+                            'f_disagrees', {'where': name, 'said': said}, name))
     return out
 
 
-def check(m, out_path=None):
+def examine(m):
+    """Everything `check` reports, before it is written out: the argument page takes its levels from here."""
     rep = Report()
     paper_file = m.resolve(m.paper.get('file'))
     if not paper_file or not os.path.exists(paper_file):
@@ -770,15 +816,15 @@ def check(m, out_path=None):
                 if not rec:
                     rep.err(f'{nid}: source not pinned (no sha256): {f}')
                 elif sha256_file(f) != str(rec).strip().lower():
-                    rep.find('STALE', f'{nid}: source changed since it was mapped: {f}')
+                    rep.find('STALE', f'{nid}: source changed since it was mapped: {f}', nid, base_name(f))
                     stale.add(nid)
                 if paper_date:
                     mdate = dt.date.fromtimestamp(os.path.getmtime(f))
                     if mdate > paper_date:
                         rep.find('AFTER-VERSION', f'{nid}: source modified {mdate}, after the paper '
-                                                  f'version of {paper_date}: {f}')
-    for label, _, msg, _, _ in value_findings(m, tex):
-        rep.find(label, msg)
+                                                  f'version of {paper_date}: {f}', nid, base_name(f))
+    for label, nid, msg, _, _, at in value_findings(m, tex):
+        rep.find(label, msg, nid, at)
 
     # Conditions: under which a support holds, and which values must agree.
     for nid, n in m.by_id.items():
@@ -793,8 +839,10 @@ def check(m, out_path=None):
                     rep.err(f'{nid} -> {s.get("to")}: holds_while cannot be evaluated '
                             f'({unevaluable_reason(m, n, hw)}): {hw}')
                 elif not res[0]:
+                    into_claim = m.by_id.get(str(s.get('to')), {}).get('kind') == 'dna'
                     rep.find('BROKEN', f'{nid} -> {s.get("to")}: "{normalize_ws(s.get("says", ""))}" holds while '
-                                       f'{res[1]:g} {hw.get("op")} {res[2]:g}; it does not')
+                                       f'{res[1]:g} {hw.get("op")} {res[2]:g}; it does not',
+                             nid, f'-> {s.get("to")}', default_level('BROKEN', into_claim))
         for c in checks_of(n):
             hw = c.get('holds_while')
             res = condition_holds(m, n, hw) if isinstance(hw, dict) else None
@@ -803,7 +851,8 @@ def check(m, out_path=None):
                     rep.err(f'{nid}: check cannot be evaluated ({unevaluable_reason(m, n, hw)}): {hw}')
             elif not res[0]:
                 rep.find('INCONSISTENT', f'{nid}: "{normalize_ws(c.get("says", ""))}" requires '
-                                         f'{res[1]:g} {hw.get("op")} {res[2]:g}; it does not')
+                                         f'{res[1]:g} {hw.get("op")} {res[2]:g}; it does not',
+                         nid, str(hw.get('node', hw.get('value', ''))))
 
     if stale:
         down, _ = build_graph(m)
@@ -841,7 +890,7 @@ def check(m, out_path=None):
             own = [p for p, label, _ in up.get(nid, []) if label in ('rests on', 'uses')]
             if not own:
                 rep.find('OVERSTATED', f'{nid}: restates {n["restates"]} and adds "{normalize_ws(n["adds"])}" '
-                                       f'with no support of its own')
+                                       f'with no support of its own', nid)
 
     # The argument: which main claims the author has confirmed, and what serves none of them.
     dnas = [nid for nid, n in m.by_id.items() if n.get('kind') == 'dna']
@@ -858,6 +907,16 @@ def check(m, out_path=None):
                 + (f' ({", ".join(loose_disc)})' if loose_disc else ''),
                 f'questions of the Introduction without an answer: {len(unanswered)}'
                 + (f' ({", ".join(unanswered)})' if unanswered else '')]
+    # The same holes carry levels; a working node off the text serving nothing is the agent's, not a hole.
+    for d in dnas:
+        verdict = claim_verdict(m, d, up)[0]
+        if verdict == 'none':
+            rep.items.append(Finding('NO-SUPPORT', d))
+        elif verdict == 'single':
+            rep.items.append(Finding('SINGLE-SUPPORT', d))
+    rep.items += [Finding('ORPHAN', x) for x in orphans if text_lines(m.by_id[x], tex)]
+    rep.items += [Finding('LOOSE-DISCUSSION', x) for x in loose_disc]
+    rep.items += [Finding('UNANSWERED', x) for x in unanswered]
 
     # Things that rest on nothing, and results nobody uses.
     for nid, n in m.by_id.items():
@@ -911,7 +970,135 @@ def check(m, out_path=None):
     rep.info.append(f'mentions: {n_mentions}; anchors in the text: '
                     f'{sum(len(v) for a, v in tex.anchor_lines.items() if a != "skip")}; '
                     f'prose paragraphs: {len(paras)}; checks: {n_checks}')
+    apply_triage(m, rep)
+    rep.argument, rep.by_section_total, rep.by_section_numbers = argument, by_section_total, by_section_numbers
+    return rep
 
+
+def apply_triage(m, rep):
+    """The agent's levels over the defaults. 'TYPE id' names every finding of that type on the node,
+    'TYPE id where' one of them; NOTE is a finding of the agent's own, on a node or an anchor. A level
+    other than the default needs its reason; a broken triage is an integrity error of the map."""
+    named = set(m.by_id) | {str(mt['anchor']) for n in m.by_id.values() for mt in mentions_of(n) if mt.get('anchor')}
+    for e in m.triage:
+        name = normalize_ws(e.get('finding') or '') if isinstance(e, dict) else ''
+        if not name:
+            rep.err(f'triage entry without finding: {e}')
+            continue
+        kind, nid, where = (name.split(' ', 2) + ['', ''])[:3]
+        level, status = e.get('level'), str(e.get('status') or 'open')
+        problems, covered = [], []
+        if level not in LEVELS:
+            problems.append(f'level must be one of {", ".join(LEVELS)}, not {level!r}')
+        if status not in TRIAGE_STATUS:
+            problems.append(f'status must be one of {", ".join(TRIAGE_STATUS)}, not {status!r}')
+        if not normalize_ws(e.get('checked') or ''):
+            problems.append("checked must say when and by whom it was checked, or 'guess'")
+        if kind == 'NOTE':
+            if not normalize_ws(e.get('what') or ''):
+                problems.append('a note says in `what` what is wrong')
+            if nid not in named and status != 'fixed':
+                problems.append(f'no node or anchor {nid!r} in the map')
+        elif kind not in DEFAULT_LEVEL:
+            problems.append(f'unknown finding type {kind!r}: one of NOTE, {", ".join(DEFAULT_LEVEL)}')
+        else:
+            covered = [f for f in rep.items if f.kind == kind and f.nid == nid and where in ('', f.where)]
+            if not covered and status != 'fixed':
+                problems.append('check reports no such finding (if it was fixed, say status: fixed)')
+            if any(f.entry is not None for f in covered):
+                problems.append('the finding is triaged twice')
+            if level in LEVELS and any(f.default != level for f in covered) \
+                    and not normalize_ws(e.get('why') or ''):
+                problems.append(f'level {level} differs from the default {covered[0].default}: say why')
+        for p in problems:
+            rep.err(f'triage {name}: {p}')
+        if problems:
+            continue
+        if kind == 'NOTE':
+            covered = [] if status == 'fixed' else [Finding('NOTE', nid, level=level)]
+            rep.items += covered
+        if not covered:
+            rep.fixed.append(name)
+        for f in covered:
+            f.level, f.entry, f.status = level, e, status
+            if status == 'fixed':
+                # The finding is still there: the fix did not take.
+                rep.warn(f'triage {name}: marked fixed, but check still reports it')
+                f.status = 'open'
+
+
+def level_counts(items):
+    counts = {lv: 0 for lv in LEVELS}
+    for f in items:
+        if f.status == 'open':
+            counts[f.level] += 1
+    return counts
+
+
+def submission(m, items, t):
+    """Whether the paper can go out, by the open findings: any CRITICAL stops it, HIGH are to be fixed.
+    Levels are preliminary while the main claims they are measured against are not the author's."""
+    counts = level_counts(items)
+    if counts['CRITICAL']:
+        verdict = t['s_stop'].format(counts['CRITICAL'])
+    elif counts['HIGH']:
+        verdict = t['s_fix'].format(counts['HIGH'])
+    else:
+        verdict = t['s_clean']
+    dnas = [n for n in m.by_id.values() if n.get('kind') == 'dna']
+    unconfirmed = [n for n in dnas if not n.get('confirmed')]
+    if unconfirmed:
+        verdict += '; ' + t['s_prelim'].format(len(unconfirmed), len(dnas))
+    untriaged = sum(1 for f in items if f.status == 'open' and f.entry is None)
+    if untriaged:
+        verdict += '; ' + t['s_default'].format(untriaged)
+    return verdict
+
+
+def level_note(f, unconfirmed):
+    if f.entry is None:
+        checked, note = None, '[not triaged]'
+    else:
+        checked = normalize_ws(f.entry.get('checked'))
+        note = '[guess]' if checked == 'guess' else f'[checked: {checked}]'
+        if f.kind == 'NOTE':
+            note += ' ' + normalize_ws(f.entry.get('what'))
+        elif f.level != f.default:
+            note += f' default {f.default}: {normalize_ws(f.entry.get("why"))}'
+    if f.level == 'CRITICAL':
+        # A wrong CRITICAL costs the author more than a missed one: it is shown only once checked.
+        if checked in (None, 'guess'):
+            note += ' candidate: verify it independently before showing it'
+        if unconfirmed:
+            note += '; relative to the proposed main claims'
+    return note
+
+
+def levels_section(m, rep):
+    """Open findings by level, CRITICAL first; then those the author accepted and those fixed."""
+    def by_level(fs):
+        return sorted(fs, key=lambda f: (LEVELS.index(f.level), f.key))
+
+    counts = level_counts(rep.items)
+    opened = by_level(f for f in rep.items if f.status == 'open')
+    accepted = by_level(f for f in rep.items if f.status == 'accepted')
+    unconfirmed = any(not n.get('confirmed') for n in m.by_id.values() if n.get('kind') == 'dna')
+    lines = ['\n== LEVELS: ' + ', '.join(f'{lv} {counts[lv]}' for lv in LEVELS)
+             + f'; not triaged {sum(1 for f in opened if f.entry is None)} ==',
+             f'  verdict: {submission(m, rep.items, PAGE_TEXT["en"])}']
+    lines += [f'  {f.level:<9} {f.key}  {level_note(f, unconfirmed)}' for f in opened]
+    if accepted:
+        lines.append(f'  accepted by the author: {len(accepted)}')
+        lines += [f'    {f.level:<9} {f.key}  {level_note(f, unconfirmed)}' for f in accepted]
+    if rep.fixed:
+        lines.append(f'  fixed: {len(rep.fixed)}')
+        lines += [f'    {x}' for x in rep.fixed]
+    return lines
+
+
+def check(m, out_path=None):
+    rep = examine(m)
+    by_section_total, by_section_numbers = rep.by_section_total, rep.by_section_numbers
     lines = ['PAPER MAP CHECK  ' + m.path]
     lines += ['  ' + x for x in rep.info]
     lines.append(f'\n== INTEGRITY ERRORS: {len(rep.errors)} (the map must be fixed) ==')
@@ -919,9 +1106,10 @@ def check(m, out_path=None):
     lines.append(f'\n== PARAGRAPHS WITHOUT ANCHOR: {len(rep.uncovered)} ==')
     lines += ['  ' + x for x in rep.uncovered]
     lines.append('\n== ARGUMENT (put to the author; the map stays clean without it) ==')
-    lines += ['  ' + x for x in argument]
+    lines += ['  ' + x for x in rep.argument]
     lines.append(f'\n== FINDINGS FOR THE AUTHOR: {len(rep.findings)} ==')
     lines += ['  ' + x for x in sorted(rep.findings)]
+    lines += levels_section(m, rep)
     lines.append(f'\n== NUMBERS OUTSIDE EVERY QUOTE: {sum(by_section_numbers.values())}, '
                  f'in {len(rep.unanchored)} paragraphs ==')
     for sec in by_section_total:
@@ -1090,6 +1278,32 @@ def support_state(m, nid, edge):
     return 'cannot evaluate' if any(r is None for r in results) else 'holds'
 
 
+def claim_verdict(m, d, up):
+    """The verdict on main claim d from the paper's own numbers and conditions: broken, deep, none, single,
+    nocond or holds; with the broken supports, the direct ones and the nodes below the claim.
+
+    A broken support straight into the claim breaks it; one deeper inside its support breaks a part of it.
+    """
+    direct = [(p, e) for p, label, e in up.get(d, []) if label == 'rests on']
+    below = descendants({d}, up)
+    # An unknown node named in `uses` is an integrity error of its own; it carries no supports.
+    broken = [(nid, s) for nid in below if nid in m.by_id for s in supports_of(m.by_id[nid])
+              if (str(s.get('to')) == d or str(s.get('to')) in below) and support_state(m, nid, s) == 'BROKEN']
+    if any(str(s.get('to')) == d for _, s in broken):
+        verdict = 'broken'
+    elif broken:
+        verdict = 'deep'
+    elif not direct:
+        verdict = 'none'
+    elif len(direct) == 1:
+        verdict = 'single'
+    elif all(support_state(m, p, e) == 'no condition' for p, e in direct):
+        verdict = 'nocond'
+    else:
+        verdict = 'holds'
+    return verdict, broken, direct, below
+
+
 def chain_to(nid, parent):
     chain, cur = [], nid
     while parent[cur] is not None:
@@ -1213,6 +1427,11 @@ PAGE_TEXT = {
         'source': 'Built from the map {map} on {date}. The main claims are the author\'s: they are put to the author '
                   'and never reworded without agreement.',
         'confirmed': 'confirmed by the author: {}', 'unconfirmed': 'not confirmed by the author: put it to the author',
+        'submit': 'Submission',
+        's_stop': 'do not submit: {} CRITICAL', 's_fix': 'can be submitted; {} HIGH recommended to fix',
+        's_clean': 'clean: no CRITICAL or HIGH',
+        's_prelim': 'preliminary: {} of {} main claims not confirmed by the author',
+        's_default': 'not triaged: {} findings at the default level',
         'verdict': 'Verdict',
         'v_broken': 'does not hold as written: conditions of its support not met: {}',
         'v_deep': 'holds, but conditions not met inside its support: {}',
@@ -1250,6 +1469,11 @@ PAGE_TEXT = {
         'source': 'Собрано из карты {map}, {date}. Главные утверждения принадлежат автору: они выносятся на его '
                   'согласование и без согласования не меняются.',
         'confirmed': 'подтверждено автором: {}', 'unconfirmed': 'не подтверждено автором: вынести на согласование',
+        'submit': 'Подача',
+        's_stop': 'подавать нельзя: {} CRITICAL', 's_fix': 'можно подавать; поправить рекомендуется {} HIGH',
+        's_clean': 'чисто: нет CRITICAL и HIGH',
+        's_prelim': 'предварительно: не подтверждены автором {} из {} главных утверждений',
+        's_default': 'не разобрано находок: {} (уровень по умолчанию)',
         'verdict': 'Вердикт',
         'v_broken': 'в нынешнем виде не держится: не выполнено условий опоры — {}',
         'v_deep': 'держится, но внутри опоры не выполнено условий — {}',
@@ -1310,35 +1534,23 @@ def argument_page(m, lang='en'):
         return s if len(s) <= k else s[:k].rstrip() + '...'
 
     out = [f'# {t["title"]}', '',
-           t['source'].format(map=os.path.basename(m.path), date=dt.date.today().isoformat())]
+           t['source'].format(map=os.path.basename(m.path), date=dt.date.today().isoformat()),
+           '', f'**{t["submit"]}:** {submission(m, examine(m).items, t)}']
     dnas = [nid for nid, n in m.by_id.items() if n.get('kind') == 'dna']
     for i, d in enumerate(dnas, 1):
         n = m.by_id[d]
         out += ['', f'## {i}. {claim(d, 400)}', '']
         out.append(f'*{t["confirmed"].format(n["confirmed"]) if n.get("confirmed") else t["unconfirmed"]}*')
-        direct = [(p, e) for p, label, e in up.get(d, []) if label == 'rests on']
-        below_d = descendants({d}, up)
-        broken = []
-        for nid in below_d:
-            for s in supports_of(m.by_id[nid]):
-                if (str(s.get('to')) == d or str(s.get('to')) in below_d) and support_state(m, nid, s) == 'BROKEN':
-                    broken.append((nid, s))
-        states = [support_state(m, p, e) for p, e in direct]
-        # A broken edge into the claim breaks it; one deeper inside its support weakens a part of it.
-        broken_direct = [b for b in broken if str(b[1].get('to')) == d]
-        if broken_direct:
-            verdict = t['v_broken'].format(len(broken_direct))
-        elif broken:
+        key, broken, direct, below_d = claim_verdict(m, d, up)
+        if key == 'broken':
+            verdict = t['v_broken'].format(sum(1 for _, s in broken if str(s.get('to')) == d))
+        elif key == 'deep':
             verdict = t['v_deep'].format(len(broken))
-        elif not direct:
-            verdict = t['v_none']
-        elif len(direct) == 1:
-            verdict = t['v_single']
-        elif all(s == 'no condition' for s in states):
+        elif key == 'nocond':
             n_below = sum(1 for x in below_d if m.by_id[x].get('kind') in ('result', 'statement'))
             verdict = t['v_nocond'].format(len({p for p, _ in direct}), n_below)
         else:
-            verdict = t['v_holds']
+            verdict = t[f'v_{key}']
         with_data = [x for x in m.by_id if (x == d or x in below_d) and found_on.get(x)]
         n_data = sum(len(found_on[x]) for x in with_data)
         if n_data:
@@ -1360,7 +1572,7 @@ def argument_page(m, lang='en'):
         out += ['', f'**{t["data"]}:** ' + ('; '.join(f'{t["kind"][k]}: {c}' for k, c in counts.items())
                                            if n_data else t['data_none'])]
         for x in with_data[:8]:
-            out.append(f'- {claim(x, 110)}: ' + '; '.join(t[key].format(**fields) for _, _, _, key, fields in found_on[x]))
+            out.append(f'- {claim(x, 110)}: ' + '; '.join(t[key].format(**fields) for _, _, _, key, fields, _ in found_on[x]))
         if len(with_data) > 8:
             out.append(f'- {t["more"].format(len(with_data) - 8)}')
         out += ['', f'**{t["rests"]}:**']

@@ -40,6 +40,9 @@ skip:                                    # paragraphs that claim nothing about t
 
 nodes:
   - ...
+
+triage:                                  # optional: the levels the agent gave the findings (`triage` below)
+  - ...
 ```
 
 Paths are relative to the folder of the main map file, in parts too.
@@ -292,12 +295,75 @@ The ARGUMENT section, also for the author: main claims not yet confirmed; result
 serve no main claim; Discussion positions tied to neither a main claim nor the literature; questions of the
 Introduction without an answer. It does not make the map unclean.
 
+The LEVELS section gives every finding and every hole of the ARGUMENT section a level (below), CRITICAL
+first, with the key to name it by in `triage` and a verdict on submission.
+
 It also lists, paragraph by paragraph, the numbers outside the quote of every mention anchored there: in
 the Abstract, Results, Discussion and captions each is a missed mention, or not a claim at all (a figure
 number, a stage named by a number). And warnings: a parameter without a source, two parameters set on the
 same line of a source to the same value (usually one parameter written down twice; different parameters
 say so in `distinct_from`, never by dropping a true source), a `supports` into a parameter or method
 (usually a check written as support), a result's mention without the scope it claims.
+
+## Levels: what the reader of the paper loses
+
+Four questions, in order; the first "yes" gives the level:
+
+1. Do the paper's own data refute a main claim, or is a main claim left without any support that can be
+   checked? **CRITICAL**: the paper cannot go out as it is. The way out - repair the evidence or narrow
+   the claim - is the author's choice.
+2. Is a specific statement of the paper false - by its data, its code, a figure, its own Methods, another
+   place of the text? **HIGH**: the story of the paper holds; fixing is recommended.
+3. Is the statement not false, but not shown: no source, or the source changed; the text names a wider
+   scope than was computed, and the conclusion stays; Methods describe a detail differently from the code,
+   and the result does not depend on it; a hole in the argument? **MEDIUM**: a careful reviewer will ask,
+   and there is an answer.
+4. Is it form only: a term used two ways, the format of numbers, panel letters, "Section 3.2.4" where
+   "(Methods)" is meant, a repetition, a typo? **LOW**.
+
+`check` gives each finding a default level by its type; the agent moves it only with a reason (`triage`).
+
+| finding | default level |
+|---|---|
+| BROKEN into a main claim (verdict "does not hold as written") | CRITICAL |
+| NO-SUPPORT: a main claim rests on nothing in the map | CRITICAL |
+| BROKEN deeper inside the support of a main claim | HIGH |
+| MISMATCH, INCONSISTENT, OVERSTATED | HIGH |
+| CONFLICT | HIGH; MEDIUM when a detail of Methods differs from the code and the result does not depend on it |
+| SCOPE | HIGH when the wider scope changes the conclusion, otherwise MEDIUM |
+| UNSOURCED, STALE, AFTER-VERSION | MEDIUM |
+| ORPHAN (a result in the text serving no main claim), LOOSE-DISCUSSION (a Discussion position tied to neither a main claim nor the literature), UNANSWERED (a question of the Introduction), SINGLE-SUPPORT (a main claim on a single support) | MEDIUM |
+
+LOW is never a default: it is the agent's, from reading. RE-CHECK lists what to look at again after a
+source changed and has no level of its own.
+
+A CRITICAL is measured against the main claims: while the author has not confirmed them, every CRITICAL is
+relative to the proposed claims, and the verdict says "preliminary". The conditions on supports
+(`holds_while`) are the agent's reading: a CRITICAL that rests on such a condition alone goes to the author
+as a question, not as a verdict.
+
+## `triage`: the agent's reading of the findings
+
+```yaml
+triage:
+  - {finding: 'MISMATCH R-cal-null mc-null', level: HIGH, checked: '2026-01-20, fresh helper, calibration.csv'}
+  - {finding: 'CONFLICT M-events', level: MEDIUM, checked: guess,
+     why: 'the code takes the real part of the coefficients, the text the modulus; the events do not depend on it'}
+  - {finding: 'NOTE fig2-cap', level: LOW, checked: guess, what: '"Section 3.2.4" where the other captions say "(Methods)"'}
+```
+
+- `finding`: the key `check` prints in LEVELS - the type, the node id and where: the anchor of a mention,
+  the figure panel, the source file, `-> target` for BROKEN, the other node for INCONSISTENT. Without the
+  "where" part the entry covers every finding of that type on the node. `NOTE <node or anchor>`, with
+  `what`, is a finding of the agent's own.
+- `level`: CRITICAL, HIGH, MEDIUM or LOW. A level other than the default needs `why`.
+- `checked`: when, by whom and against what, or `guess`.
+- `status`: `open` (the default), `fixed`, or `accepted` - the author keeps it as it is. Fixed and accepted
+  findings do not count in the verdict. A fixed finding that `check` no longer reports stays as a record;
+  one it still reports is warned about and counts.
+- Triage lives in the main map, not in parts, and stays when the paper moves to a new version.
+- Integrity errors: a key that `check` does not report (unless `fixed`), a finding triaged twice, a level
+  other than the default without `why`, no `checked`, an unknown type, level or status.
 
 ## What `impact` reports
 
@@ -321,7 +387,10 @@ dropped.
 ## What `argument` writes
 
 The page the author reads first, in English or Russian (`--lang ru` translates the frame; claims appear as
-written in the map): for each main claim, whether the author confirmed it, a verdict (holds; does not hold
+written in the map). It opens with the verdict on submission from the levels: "do not submit: N CRITICAL",
+"can be submitted; N HIGH recommended to fix" or "clean", preliminary while the main claims are not
+confirmed, with the count of findings still at their default level. Then for each main claim, whether the
+author confirmed it, a verdict (holds; does not hold
 as written; holds but conditions fail inside its support; rests on so many supports with no checkable
 condition; rests on a single support), what breaks it, what the data say against its support, what it
 rests on, its restatements, the Discussion and literature around it (tied directly or through a
