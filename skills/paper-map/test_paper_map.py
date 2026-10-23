@@ -227,6 +227,21 @@ with tempfile.TemporaryDirectory() as d:
 
 with tempfile.TemporaryDirectory() as d:
     tmp = Path(d)
+    chain = PART.replace(
+        "    supports: [{to: DNA-dense, says: 'the main claim rests on the dense code'}]\n",
+        "    supports: [{to: DNA-dense, says: 'the main claim rests on the dense code'},\n"
+        "               {to: D-far, says: 'the consequence follows from the dense code'}]\n") + """  - id: D-far
+    kind: discussion
+    claim: 'a consequence drawn from the dense code'
+    mentions: [{anchor: far-d, quote: 'which supports a dense code.'}]
+"""
+    map_path = make_paper(tmp, part=chain)
+    tiers = pm.impact_tiers(pm.Map(str(map_path)), ['P-pix'])
+    check('a Discussion position two steps away, not through a main claim, is re-read', 'D-far' in tiers['re-read'], True)
+    check('a restatement reached through a main claim stays further up', 'D-everywhere' in tiers['further'], True)
+
+with tempfile.TemporaryDirectory() as d:
+    tmp = Path(d)
     dup = PART + """  - id: P-pix
     kind: param
     claim: 'pixel size, again'

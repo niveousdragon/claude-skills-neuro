@@ -54,8 +54,8 @@ TIERS = [
     ('claims', 'MAIN CLAIMS AT STAKE: put them to the author; never reword one without agreement'),
     ('recompute', 'RECOMPUTE: a number or a figure panel computed from the change'),
     ('rewrite', 'REWRITE: the description of a method or parameter that uses the changed node directly'),
-    ('re-read', 'RE-READ: a statement resting on a changed value, one step of the argument away'),
-    ('further', 'FURTHER UP THE ARGUMENT: two or more steps away, or the framing of the paper'),
+    ('re-read', 'RE-READ: a statement or a Discussion position resting on a changed value, below the main claims'),
+    ('further', 'FURTHER UP THE ARGUMENT: reached through a main claim, or the framing of the paper'),
     ('downstream', 'DOWNSTREAM STEPS: methods and parameters fed by the change; their own text probably stands'),
     ('off-text', 'NOT IN THE TEXT: runs, intermediate results and code the change passes through'),
 ]
@@ -982,7 +982,27 @@ def reach(m, ids):
     return steps, parent, direct
 
 
-def tier_of(nid, n, steps, direct):
+def below_claims(m, ids):
+    """Nodes the change reaches without passing through a main claim.
+
+    A conclusion of the Results or a Discussion position resting on a changed result has to be re-read
+    however many statements lie between them; only what is reached through a main claim is the framing
+    of the paper.
+    """
+    down, _ = build_graph(m)
+    seen, q = set(ids), deque(ids)
+    while q:
+        cur = q.popleft()
+        if cur not in ids and m.by_id[cur].get('kind') == 'dna':
+            continue
+        for dep, _, _ in down.get(cur, []):
+            if dep not in seen:
+                seen.add(dep)
+                q.append(dep)
+    return seen
+
+
+def tier_of(nid, n, steps, direct, below=frozenset()):
     kind = n.get('kind')
     if kind == 'dna':
         return 'claims'
@@ -996,16 +1016,19 @@ def tier_of(nid, n, steps, direct):
         return 'downstream'
     if kind in FRAMING_KINDS:
         return 're-read' if steps == 0 else 'further'
+    if kind in ('statement', 'discussion') and nid in below:
+        return 're-read'
     return 're-read' if steps <= 1 else 'further'
 
 
 def impact_tiers(m, ids):
     """Node ids downstream of the changed ones, by what has to be done with them, in reach order."""
     steps, _, direct = reach(m, ids)
+    below = below_claims(m, ids)
     tiers = {name: [] for name, _ in TIERS}
     for nid in steps:
         if nid not in ids:
-            tiers[tier_of(nid, m.by_id[nid], steps[nid], direct)].append(nid)
+            tiers[tier_of(nid, m.by_id[nid], steps[nid], direct, below)].append(nid)
     return tiers
 
 

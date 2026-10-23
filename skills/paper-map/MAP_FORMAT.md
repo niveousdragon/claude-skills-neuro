@@ -114,7 +114,7 @@ sources:
      how: 'python analysis/resp.py --mouse all'}
   - {commit: 'a1b2c3d4', path: 'src/pkg/stats.py', locator: 'line 88: THRESHOLD = 0.01', value: '0.01'}
   - {commit: 'a1b2c3d4', path: 'src/pkg/mi.py', locator: 'line 40', disagrees: 'uses the KSG estimator; the text says a classifier'}
-  - {unavailable: 'library outside the allowed folders', locator: 'pkg/intense.py, line 12', value: '1000'}
+  - {unavailable: 'library outside the allowed folders', locator: 'pkg/filters.py, line 12', value: '0.5'}
 ```
 
 - A file always carries its `sha256`. `check` recomputes it every time: a changed file marks the node
@@ -309,8 +309,8 @@ everything downstream, by what has to be done:
 | MAIN CLAIMS AT STAKE | the main claims the change reaches, with the state of each support into them; they go to the author, never reworded without agreement |
 | RECOMPUTE | results computed from the change through `uses`: numbers and panels |
 | REWRITE | methods and parameters that use the changed node directly: their descriptions |
-| RE-READ | statements one `supports`, `answers`, `relates` or restatement step away from a changed value |
-| FURTHER UP | statements two or more steps away, and the questions of the Introduction |
+| RE-READ | statements one `supports`, `answers`, `relates` or restatement step away from a changed value, and every statement or Discussion position further up that the change reaches without passing through a main claim: the conclusions of a section and the Discussion drawn from the changed result |
+| FURTHER UP | what the change reaches only through a main claim (restatements, the framing of the paper), cited works, and the questions of the Introduction |
 | DOWNSTREAM STEPS | methods and parameters fed indirectly: results below them change, their own text probably stands |
 | NOT IN THE TEXT | runs, intermediate results and code on the way, with their sources |
 

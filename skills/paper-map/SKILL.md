@@ -138,6 +138,12 @@ paper takes hours: where the harness offers background workers that outlive the 
   it or dropping it.
 - **An edit of the paper is an edit of the text and the map together.** It is done when `check` is clean
   again. Re-pin a sha256 only after checking the new value.
+- **When the paper moves to a new version:** work on a copy of the map. For each changed piece of the diff,
+  run `impact` on the nodes whose mentions sit in the changed text while the map still points at the old
+  version; update claims, values and quotes, add nodes for new claims, remove the nodes whose claims are
+  gone. Then point `paper` at the new version, `place-anchors` and `check` until clean. Places `impact` names
+  that the diff did not touch go to the author as possibly missed. In `disagrees` and `locator`, refer to
+  anchors rather than line numbers: line numbers go stale with every version.
 - **After sources change:** `check` marks them STALE and lists what depends on them as RE-CHECK.
 - **"Where does this come from":** `trace`. **For co-authors:** `strip`.
 
