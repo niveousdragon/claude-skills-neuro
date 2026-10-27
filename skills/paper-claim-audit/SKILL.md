@@ -151,3 +151,4 @@ and the last `check` report. Do not edit the manuscript or any file outside your
 | a ledger table kept beside the map | one ledger: the map |
 | a `check` finding reported without opening the source | verify it; the map can be wrong too |
 | time "about an hour" by feel | timestamps |
+| findings turned into text edits wholesale: numbers added, sentences of meaning narrowed | each fix proposed to the author; it corrects or removes, never adds; the edited text read again under paper-big-picture |

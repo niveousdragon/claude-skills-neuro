@@ -145,6 +145,11 @@ paper takes hours: where the harness offers background workers that outlive the 
   that the diff did not touch go to the author as possibly missed. In `disagrees` and `locator`, refer to
   anchors rather than line numbers: line numbers go stale with every version.
 - **After sources change:** `check` marks them STALE and lists what depends on them as RE-CHECK.
+- **A finding goes to the author, not into the text.** OVERSTATED, a number missing from a mention,
+  a sentence of meaning without its own support: each is a question to the author. Fixing a finding
+  corrects or removes a number; it never adds a number to the text and never narrows the sentence
+  that says what follows. The map checks truth, not readability: an edit that follows it is read
+  again under paper-big-picture.
 - **Levels of the findings.** `check` gives every finding a default level - CRITICAL, HIGH, MEDIUM, by what
   the reader loses (MAP_FORMAT.md, Levels) - and a verdict on submission. Your reading goes into `triage`:
   each finding checked or a guess, a moved level with its reason, your own findings from reading as
@@ -175,4 +180,5 @@ paper takes hours: where the harness offers background workers that outlive the 
 | `impact` output taken as the answer | it proposes; each place is confirmed |
 | a level moved by feel, or kept in a report beside the map | the four questions; a moved level carries `why` in `triage` |
 | text edited and the map left behind | edit both; `check` until clean |
+| a finding closed by adding a number or narrowing a sentence of meaning | a question to the author; the text changes only with the answer |
 | build time "about an hour" by feel | file timestamps |

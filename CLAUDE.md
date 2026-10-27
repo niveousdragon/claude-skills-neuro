@@ -73,6 +73,7 @@
 `meeting-memo/`, `report/`, `paper-big-picture/`, `avoid-ai-writing/`, `paper-claim-audit/` и `paper-map/`,
 в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
 в `paper-map/` — `paper_map.py`, `MAP_FORMAT.md` и `test_paper_map.py`,
+в `paper-big-picture/` — `count_numbers.py` и `test_count_numbers.py`,
 в `msu-publication-clearance/` — `fill_clearance.py`,
 в `meeting-memo/` — `transcribe.py`, `setup.ps1` и `setup.sh`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
@@ -123,6 +124,8 @@ Anaconda он уже есть); без Word скрипт заполняет бл
 статьи `paper_map.py` нужен Python 3 с пакетом `pyyaml` (`pip install pyyaml`; в Anaconda он
 уже есть). Проверка: `python ~/.claude/skills/paper-map/test_paper_map.py` печатает
 `ALL PASSED`. Не блокируйся: ставь, когда пользователь впервые попросит сверку или карту статьи.
+Скрипту `count_numbers.py` из `paper-big-picture` нужен только Python 3, без пакетов. Проверка:
+`python ~/.claude/skills/paper-big-picture/test_count_numbers.py` печатает `ALL PASSED`.
 
 **Внешняя зависимость (только для `auditing-structural-debt`).** Скрипту переписи
 `census.sh` нужны git и POSIX-оболочка: на Windows это Git Bash, он ставится вместе
@@ -195,7 +198,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `report` | `~/.claude/skills/report/SKILL.md` | папка на месте |
 | `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py`, `setup.ps1`, `setup.sh` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
-| `paper-big-picture` | `~/.claude/skills/paper-big-picture/SKILL.md` | папка на месте |
+| `paper-big-picture` | `~/.claude/skills/paper-big-picture/SKILL.md` | папка на месте, рядом `count_numbers.py`, `test_count_numbers.py` |
 | `paper-claim-audit` | `~/.claude/skills/paper-claim-audit/SKILL.md` | папка на месте |
 | `paper-map` | `~/.claude/skills/paper-map/SKILL.md` | папка на месте, рядом `paper_map.py`, `MAP_FORMAT.md`, `test_paper_map.py` |
 | общий протокол | блок с метками `claude-skills-neuro:protocol` в `~/.claude/CLAUDE.md` | предложен пользователю; если согласился — блок на месте, один |

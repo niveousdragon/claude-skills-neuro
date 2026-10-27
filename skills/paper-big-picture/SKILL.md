@@ -102,17 +102,33 @@ have these shapes:
   the journal's own pages (author guidelines, formatting or reporting checklist) with the
   link; what other papers in the journal happen to do is a style, not a requirement. Meet
   it in the form that costs the reader least, and list it in the note to the author with
-  the quote. When meeting it means cutting or rewriting the author's text (a word limit, a
-  reference limit, a required section), it is a proposal to the author, not an edit.
+  the quote. Note the stage it applies to (initial submission, revision, accepted
+  manuscript): a requirement of a later stage goes to the author's list for that stage and
+  is not applied now. When meeting it means cutting or rewriting the author's text (a word
+  limit, a reference limit, a required section), it is a proposal to the author, not an
+  edit.
+- **The Supplementary Information follows the same rules.** Its counts and per-condition
+  values go into its tables, not into its sentences.
 - **Measure it.** Report numbers per 100 words for each changed section, before and after
-  the pass. A rise is a change the author has to approve, with the reason.
+  the pass, with `count_numbers.py` next to this file (`python count_numbers.py OLD.tex
+  NEW.tex`): one counting rule for every pass, so that labels and names such as "Stage 1",
+  "F1" or "Fig. 2" are not counted as numbers. A rise is a change the author has to approve,
+  with the reason.
 
-**Before handing over Part 1, check it with a reader.** A fresh agent gets each changed
-Results paragraph alone and answers: what is its message, in one sentence, and which numbers
-did it need for that. Numbers it did not need move out, except a number a main claim rests
-on; a paragraph whose message it cannot state is rewritten. This check stands in for the
-author's reading between passes: the author reads the paper once or twice, not after every
-pass.
+**Before handing over Part 1, run three checks, each by a fresh agent.**
+1. **Numbers against their sources**: every number introduced or changed (paper-claim-audit
+   when the paper has a map).
+2. **The reader.** It gets each changed Results paragraph alone and answers: what is its
+   message, in one sentence, and which numbers did it need for that. Numbers it did not
+   need move out, except a number a main claim rests on; a paragraph whose message it
+   cannot state is rewritten. This check stands in for the author's reading between passes:
+   the author reads the paper once or twice, not after every pass.
+3. **Old against new.** It gets every changed sentence beside the sentence it replaced and
+   answers one question: does the new one claim more? A wider scope (all sessions where
+   the old said one), a stronger verb (shows, proves, drives where the old said is
+   consistent with, reflects, relates to), cause where the old had association, a general
+   statement where the old had a measurement. Shortening invites exactly this. Each "yes"
+   is reverted to the old scope, or goes to the author if the data support the wider claim.
 
 **Then sort it.** Go through it sentence by sentence and label each one: *result* (what was
 measured or shown), *meaning* (what it establishes), or *doubt* (a weakness, a missing
@@ -229,3 +245,4 @@ the caveat.
 - a figure redrawn, a heading reworded or a citation dropped that the task did not name
 - the revised manuscript of a review taken as the new base
 - a result rewritten from what a figure preview seems to show
+- a shortened sentence that claims more than the one it replaced
