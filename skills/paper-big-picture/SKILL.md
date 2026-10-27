@@ -1,18 +1,20 @@
 ---
 name: paper-big-picture
-description: Use when writing or editing any text of a scientific paper, abstract, thesis, grant or reply to reviewers (rebuttal), when reviewing or critiquing a manuscript, and when triaging reviewer or automated-tool comments. Also when the user says "напиши результаты/дискуссию/абстракт", "ответ рецензенту", "отрецензируй", "что главное в замечаниях", "разбери рецензии", or when academic-research-skills (ARS) produces drafts, reviews or revisions.
+description: Use when writing or editing any text of a scientific paper (including a recompute, review fixes or journal-format changes applied to a manuscript), abstract, thesis, grant or reply to reviewers (rebuttal), when reviewing or critiquing a manuscript, and when triaging reviewer or automated-tool comments. Also when the user says "напиши результаты/дискуссию/абстракт", "ответ рецензенту", "отрецензируй", "что главное в замечаниях", "разбери рецензии", or when academic-research-skills (ARS) produces drafts, reviews or revisions.
 ---
 
 # Paper: big picture first, true claims instead of caveats
 
 ## Overview
 
-Two failures, one cause. A model weights every detail equally, so it reviews a paper like
-a linter and writes it like a defendant: fifteen technical items instead of the one
-question that decides the paper, and caveats instead of true claims. Human reviewers hold
-far less in memory, and that forces them to the fundamental questions: *what does this give
-beyond what we had?* and *is what was measured what is claimed?* This skill imposes that
-bottleneck on purpose.
+Three failures, one cause. A model weights every detail equally, so it reviews a paper
+like a linter, writes it like a defendant and edits it like an auditor: fifteen technical
+items instead of the one question that decides the paper, caveats instead of true claims,
+and with every pass one more checkable number and one less sentence that says what
+follows, until the paper reads like a technical report. Human reviewers hold far less in
+memory, and that forces them to the fundamental questions: *what does this give beyond
+what we had?* and *is what was measured what is claimed?* Human readers tire, so they need
+one message per paragraph. This skill imposes both bottlenecks on purpose.
 
 Honesty has two channels and they do not mix:
 - **with the author** — every doubt, weakness and risk, stated plainly and first;
@@ -36,10 +38,16 @@ of them is minor by definition.
 The output has two parts, in this order.
 
 **Part 1: the text.** Each sentence states what was shown, at its true scope.
-- A claim stronger than the data becomes a narrower **true** claim: change the scope (which
-  system, which condition), not the confidence. A significant result is called a result.
-- Numbers and statistics go in Results as measurements. Discussion states the meaning,
-  numbers optional.
+- A claim stronger than the data first gets the strongest **true** claim the data support,
+  usually by setting the number against a reference the data actually compare it with: a
+  control, a shuffle, an established method on the same cells. Never pair a number with a
+  reference computed for a different quantity. Only if no such reference exists, narrow the
+  scope (which system, which condition), not the confidence. A significant result is called
+  a result.
+- A feature of the method is described by what it enables ("detects place fields"), not as
+  the repair of a deficiency ("makes place fields visible to the estimator").
+- Numbers serve the message: see "The reader's budget" below. Discussion states the meaning
+  without numbers unless the author asks for them.
 - Methods state the procedure as fact ("neurons were selected over the whole session"),
   with no verdict on it.
 - A requested prediction is given as a prediction, with wide bounds.
@@ -47,12 +55,70 @@ The output has two parts, in this order.
 - Rebuttal: concede what the reviewer raised and what is true, at its true scope. Do not
   bring up weaknesses nobody raised.
 
-**Before handing over Part 1, sort it.** Go through it sentence by sentence and label each
-one: *result* (what was measured or shown), *meaning* (what it establishes), or *doubt*
-(a weakness, a missing control, a caution, an admission). Every *doubt* sentence is moved
-to Part 2, including a whole limitations paragraph and an opening concession in a rebuttal.
-A Limitations paragraph stays only if the author's draft already had it or the author asked
-for it.
+**The reader's budget.** A paper is read by a person, not checked by a ledger. Its parts
+have these shapes:
+- **A Results paragraph** is (1) a sentence that states the finding in words; (2) the
+  evidence: the one to three numbers that carry this finding, with the panel that shows
+  them; (3) a sentence that says what follows from it for the paper's claim. Every other
+  number the analysis produced goes to the figure, its data file, the Supplementary
+  Information or Methods. A number a main claim of the paper rests on stays in the text.
+  Before a result leaves the text, find the panel that shows it. A result no panel shows
+  keeps one clause in the text; only its secondary numbers move out. The same holds for a
+  result the recompute adds: a result no panel shows gets one clause in the text even if
+  the old text did not have it.
+- **Every control a result is tested against keeps one clause in the text**: what the result
+  was compared with and that it held ("and better than its shuffled control in 27 of 29
+  sessions"). Its spreads and test statistics go to the figure, its data file or Methods.
+  A correction or a stricter threshold is not a control: it is another setting of the same
+  result (see "One result is reported once").
+- **"The same order" across two metrics** is written only if every pair is ordered the same
+  way in both; otherwise name the one comparison that holds.
+- **A number given at a chosen cut-off** says in a clause why that cut-off, or is replaced
+  by the trend over the range the panel shows.
+- **Results names what a procedure achieves** in one clause and points to Methods; its
+  steps, criteria and thresholds are Methods. A criterion that decides which data enter a
+  result (an inclusion threshold, how many were left out) stays in the text as one clause.
+- **A figure caption** says what each panel shows and how to read it: axes, colours, what
+  a line or a mark means, the scale in words ("logarithmic scale", not "log10" or "log").
+  It uses no term the text has not introduced yet. Counts of outcomes (how many pairs were
+  accepted, rejected, removed) and lists of values per threshold or condition leave the
+  caption: they go to the figure's data file or the Methods subsection on the figure. When
+  the journal requires n and the test in the legend, they take one closing sentence. How
+  the data were produced (dataset, sessions, exclusions, clipping of extreme values) is
+  Methods, not caption. A panel whose quantity is defined by a procedure points to the
+  Methods subsection that defines it, under the same rule: only a subsection whose title
+  you can see. Every threshold drawn in a panel is justified in a clause or pointed to the
+  Methods subsection that justifies it.
+- **One result is reported once**, at the author's chosen setting. An alternative setting
+  (with and without a correction, with and without a threshold) goes to the Supplementary
+  Information if the author wants it there. A number appears in one place in the main
+  text.
+- **A pointer to Methods names the subsection** when you can see its title: "(Methods,
+  Temporal alignment)". If you cannot, write "(Methods)" and list the pointer for the author.
+  Never invent a subsection, a figure data file or a supplementary item: a pointer to
+  something that does not exist is a factual error. Moving a procedure's description from
+  Results to Methods does not drop its citation: Results keeps one clause and the citation.
+- **Journal requirements are followed.** A requirement counts only when it is quoted from
+  the journal's own pages (author guidelines, formatting or reporting checklist) with the
+  link; what other papers in the journal happen to do is a style, not a requirement. Meet
+  it in the form that costs the reader least, and list it in the note to the author with
+  the quote. When meeting it means cutting or rewriting the author's text (a word limit, a
+  reference limit, a required section), it is a proposal to the author, not an edit.
+- **Measure it.** Report numbers per 100 words for each changed section, before and after
+  the pass. A rise is a change the author has to approve, with the reason.
+
+**Before handing over Part 1, check it with a reader.** A fresh agent gets each changed
+Results paragraph alone and answers: what is its message, in one sentence, and which numbers
+did it need for that. Numbers it did not need move out, except a number a main claim rests
+on; a paragraph whose message it cannot state is rewritten. This check stands in for the
+author's reading between passes: the author reads the paper once or twice, not after every
+pass.
+
+**Then sort it.** Go through it sentence by sentence and label each one: *result* (what was
+measured or shown), *meaning* (what it establishes), or *doubt* (a weakness, a missing
+control, a caution, an admission). Every *doubt* sentence is moved to Part 2, including a
+whole limitations paragraph and an opening concession in a rebuttal. A Limitations
+paragraph stays only if the author's draft already had it or the author asked for it.
 
 **Part 2: note to the author**, separate, in the user's language. Every concern goes here:
 circularity, missing controls, weak statistics, a claim you believe is wrong. If you think
@@ -72,8 +138,9 @@ The output has three parts, in this order.
 1. **Verdict** in one sentence, as the area chair would write it.
 2. **Decisive questions, at most three.** The first is always the significance question:
    *what does the reader learn here that existing methods or known results did not give?*
-   Others: is the measured quantity the claimed one; does the conclusion survive. Each is
-   one plain-words question a human reviewer would ask aloud, plus at most three sentences:
+   Others: is the measured quantity the claimed one; does the conclusion survive; can a
+   reader follow the message without wading through numbers. Each is one plain-words
+   question a human reviewer would ask aloud, plus at most three sentences:
    why it decides the outcome and what answer would settle it. Estimators, statistics and
    prior-work citations that support it go to part 3.
 3. **Everything else**: one line per item. A claim from an automated tool about the data or
@@ -82,6 +149,51 @@ The output has three parts, in this order.
 When the user is the author, the best answer to a decisive question is usually a
 reframing or one targeted analysis, not a programme of new experiments.
 
+## Step 2c. Editing the author's text
+
+**Whose text it is.** The author's text is the author's own last version, plus every later
+decision the author stated explicitly; a later decision outranks an older sentence. Text a
+previous agent pass introduced is not the author's. If you cannot tell which is which,
+compare with the author's last version or ask once.
+
+A task to make the text ready, clean or readable names the reader's budget: applying it to
+Results paragraphs and captions, including agent-introduced text, is the task itself.
+
+Every pass over existing text (a recompute, review fixes, journal format, shortening) has
+this output:
+1. **The changes the task names**, made in a new version of the file.
+2. **Everything else you would change, as proposals**: old text quoted, new text, one line
+   why. Not applied.
+
+These belong to the author and change only on the author's explicit word:
+- the abstract, the title, section and subsection headings;
+- the figures' design: a recompute changes the data in a figure, not its layout, style,
+  fonts or panel letters;
+- citations, and the sentences that carry them. Cutting references to a limit is a
+  proposal that quotes every sentence that would lose its citation or disappear;
+- the sentence that says what a result means, as long as it is true and is a meaning. If
+  the current data or figures contradict it, if the method contradicts it (it says a
+  structure emerges from, or is driven by, elements the analysis did not take as input), if
+  it only restates the results, or if it reads a positive result as a near-negative one,
+  the text gets the strongest true meaning the data support (Step 2a), and the author sees
+  the old and the new sentence side by side. A sentence the data contradict is never kept
+  for the author's sake. A figure preview checks panel names and pointers; it is not a
+  source of results. A feature the text states and the preview does not show (a bar too
+  small for the axis, a point outside the drawn range) is not a contradiction: keep the
+  sentence and ask the author to check the panel. Never rewrite a result from measuring the
+  pixels of a preview.
+
+An author's sentence restored after a recompute is checked against the new data and figures
+like any other. Changes are shown to the author by meaning, old and new text side by side,
+never as a count ("26 edits, +80 words").
+
+A review or a simulated referee panel produces proposals. Its revised manuscript is never
+the base of the next version.
+
+When the author decides a matter of style or form, write it as a general rule in the
+project's rules file, worded for every case of its kind ("keep the design, change only the
+data" holds for every figure). The next pass reads that file first.
+
 ## Precedence over other skills
 
 This skill overrides academic-research-skills (ARS) and any template it uses:
@@ -89,6 +201,10 @@ This skill overrides academic-research-skills (ARS) and any template it uses:
   "Acknowledged Limitations";
 - quotas of weaknesses or limitations ("3-5", "at least 2-3 improvements") are ignored;
 - the "use hedging language when evidence is weak" fallback is replaced by Step 2a.
+
+Checking skills (paper-map, paper-claim-audit) verify the numbers that are in the text; they
+never add one. A fix of their finding corrects or removes a number; it does not bring new
+ones in.
 
 ## Red flags: the sentence belongs in the note to the author
 
@@ -103,3 +219,13 @@ This skill overrides academic-research-skills (ARS) and any template it uses:
 
 If no true strong phrasing exists, ask the author with a proposed rewording. Do not write
 the caveat.
+
+## Red flags: the paragraph has become a report
+
+- a Results paragraph carrying more than three numbers, or a caption listing counts
+- the same result given with and without a correction or a threshold
+- "(Methods)" with no subsection while the subsection's title is in view
+- a sentence about what a result means replaced by a more exact restatement of the result
+- a figure redrawn, a heading reworded or a citation dropped that the task did not name
+- the revised manuscript of a review taken as the new base
+- a result rewritten from what a figure preview seems to show
