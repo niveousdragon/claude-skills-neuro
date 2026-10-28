@@ -494,6 +494,32 @@ def convert_guillemets(tex_text):
         tex_text, lambda s: s.replace("<<", "«").replace(">>", "»"))
 
 
+_TT_ESCAPES = {"\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "_": r"\_",
+               "#": r"\#", "%": r"\%", "&": r"\&", "$": r"\$",
+               "~": r"\textasciitilde{}", "^": r"\textasciicircum{}"}
+
+
+def paths_to_code(tex_text):
+    r"""Turn ``\path{...}`` and ``\path|...|`` into ``\texttt`` that pandoc keeps.
+
+    Pandoc does not know the url package's ``\path``: the braced form vanishes
+    and leaves an empty ``()`` in the reader's text, the delimited form keeps
+    its delimiters. ``\texttt`` with the special characters escaped reads the
+    same and also works inside a caption, where ``\verb`` is not allowed.
+    """
+    def code(body):
+        return r"\texttt{" + "".join(_TT_ESCAPES.get(c, c) for c in body) + "}"
+
+    def fix(s):
+        s = re.sub(r"\\path\s*\{([^{}]*)\}", lambda m: code(m.group(1)), s)
+        return re.sub(r"\\path\s*([^\sA-Za-z{@*])(.*?)\1",
+                      lambda m: code(m.group(2)), s)
+
+    if r"\path" not in tex_text:
+        return tex_text
+    return map_outside_protected(tex_text, fix)
+
+
 def number_equations(tex_text):
     r"""Number display equations and resolve ``\eqref``/``\ref`` to those numbers.
 
@@ -821,6 +847,7 @@ def convert(tex_path, output=None, bib=None, csl=None, dpi=300, keep_clean=False
     expanded = expand_inputs(raw, tex_dir)
     clean = materialise_nomenclature(clean, expanded)
     clean = relocate_caption_labels(clean)
+    clean = paths_to_code(clean)
     clean = number_equations(clean)
     # The <<…>> ligature only exists for certain languages; look for it in the
     # *original* source (with its \input chain), since flattening throws the

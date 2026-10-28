@@ -33,6 +33,14 @@ Journal figure rules are specific and differ between journals: Nature caps text 
    - the audit result;
    - what you could not check: the journal's page if it was not reachable, a missing font on this machine (say so; do not install fonts without asking), and the content rules below.
 
+## A figure that is already in the author's manuscript
+
+The audit result is a list of fixes, each tied to the journal rule it breaks. Rebuilding
+the figure is the author's decision: fonts, sizes, layout, width in the manuscript and the
+examples shown stay as the author made them until the author agrees to a change, shown old
+and new side by side. A new figure, or one the author asked to rebuild, follows the
+workflow above.
+
 ## Quick reference (checked 2026-09-19; the script's table is authoritative)
 
 | Journal (`journal`) | `column` keys → width | Text | Submit |
@@ -66,3 +74,5 @@ Look at these yourself and name them in the hand-over.
 - Saving a TIFF with Pillow's `compression="tiff_lzw"`. On some installations its libtiff crashes Python outright; `fa.save` writes LZW without it.
 - Using 6–7 pt text, which is fine for Nature, in a PLOS figure, where 8 pt is the minimum.
 - Treating "the script ran" or "I looked at the PNG" as proof. Only the audit line counts.
+- Redrawing an author's figure "for the journal" in a new script: smaller fonts, another
+  inserted width, a new example. Propose the fixes; the author decides.

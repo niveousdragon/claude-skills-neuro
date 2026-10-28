@@ -22,6 +22,13 @@ CASES = [
     ("held-out $R^2$ was $-0.08$", 1, "negative value, R^2 is a name"),
     ("traces sampled at 30 Hz for 20 min", 2, "values with units"),
     ("% 12 34 a comment\nno numbers here", 0, "LaTeX comments"),
+    ("A quarter of neuron-sessions were selective, one in six of them to two variables.", 2,
+     "verbal fractions are numbers too"),
+    ("Nine in ten pairs passed; one pair in ten reached Stage 2.", 2, "N in M in words"),
+    ("nearly half of the cells and two thirds of the sessions", 2, "half, thirds"),
+    ("about a third of the mice", 1, "a qualified fraction counts once"),
+    ("in the first half of the session, a third variable", 0, "half and third as names"),
+    ("the majority of pairs", 0, "majority is not a quantity"),
 ]
 
 

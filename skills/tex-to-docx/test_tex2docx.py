@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from tex2docx import (convert_guillemets, uses_guillemet_ligature,
                       number_equations, needs_flattening,
-                      materialise_nomenclature)
+                      materialise_nomenclature, paths_to_code)
 
 ok = True
 
@@ -88,6 +88,20 @@ check('thesis (preamble \\input + body \\include) -> flatten',
 check('single-file paper -> no flatten',
       needs_flattening(r'\documentclass{article}\usepackage{graphicx}'
                        r'\begin{document}Hello \cite{x}\end{document}'), False)
+
+print('\n--- \\path survives (pandoc drops it) ---')
+check('braced \\path becomes code',
+      paths_to_code(r'the script (\path{tools/run_x.py}) ran'),
+      r'the script (\texttt{tools/run\_x.py}) ran')
+check('delimited \\path becomes code',
+      paths_to_code(r'file \path|C:\data\a_b.npz| here'),
+      r'file \texttt{C:\textbackslash{}data\textbackslash{}a\_b.npz} here')
+check('longer command name untouched',
+      paths_to_code(r'\pathname{x} and \path{y}'),
+      r'\pathname{x} and \texttt{y}')
+check('\\path inside verbatim untouched',
+      paths_to_code('\\begin{verbatim}\n\\path{x}\n\\end{verbatim}'),
+      '\\begin{verbatim}\n\\path{x}\n\\end{verbatim}')
 
 print('\nALL PASS' if ok else '\nSOME FAILED')
 sys.exit(0 if ok else 1)

@@ -77,6 +77,13 @@ sources against value, the conditions of the argument. What remains needs you:
 - **Controls.** A claim about what a control shows matches the control's numbers.
 - **Methods against code.** Parameters, thresholds, units, rates, the stages that were
   actually run.
+- **Methods against the recording.** Facts about the experiment (durations, frame or
+  sampling rates, pixel sizes, numbers of animals and sessions) against the protocol or the
+  raw recording's own metadata, not against the analysis code alone. Find each place where
+  the pipeline fills a property of the data with a default (a loader's frame rate, a time
+  base) and check it against the raw files: a default agrees with the code and the text and
+  can still be false, and then every quantity set in seconds or centimetres is off. Two
+  values where the protocol has one (two durations, two rates) is a question to the author.
 - **Provenance.** A source marked "changed after version" that disagrees with the text is
   reported as a provenance question, not as an error of the text.
 
@@ -148,6 +155,7 @@ and the last `check` report. Do not edit the manuscript or any file outside your
 | only the first mention checked | every mention of the result, including figure panels and Discussion |
 | a contradicting earlier verdict taken as settled | report the data beside the verdict |
 | a judgement call reported as an error | move it to questions for the author |
+| a recording's frame rate or duration checked against the code that assumed it | check it against the raw files' metadata or the protocol |
 | a ledger table kept beside the map | one ledger: the map |
 | a `check` finding reported without opening the source | verify it; the map can be wrong too |
 | time "about an hour" by feel | timestamps |

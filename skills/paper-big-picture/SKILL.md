@@ -44,12 +44,23 @@ The output has two parts, in this order.
   reference computed for a different quantity. Only if no such reference exists, narrow the
   scope (which system, which condition), not the confidence. A significant result is called
   a result.
+- Before writing what the method covers or cannot do, search the project for the analyses
+  that tested it (reports, benchmarks, earlier versions) and write the widest scope they
+  support. A sentence about what the method cannot do is a *doubt* (see "Then sort it")
+  unless the author wrote it.
 - A feature of the method is described by what it enables ("detects place fields"), not as
   the repair of a deficiency ("makes place fields visible to the estimator").
 - Numbers serve the message: see "The reader's budget" below. Discussion states the meaning
   without numbers unless the author asks for them.
 - Methods state the procedure as fact ("neurons were selected over the whole session"),
-  with no verdict on it.
+  with no verdict on it. They are written for a reader who wants to understand and repeat
+  the procedure: each step with what it is for, and the reader's budget holds there too.
+  Command lines, file and script names, configuration names, random seeds and the tool's
+  internals go to the code repository's README and one sentence in Code availability.
+- Facts about the experiment (durations, frame or sampling rates, numbers of animals and
+  sessions) come from the protocol, the recording's own metadata or the author, never from
+  a software default or from the analysis output alone. Something odd in them (two
+  durations under one protocol) is a question to the author, not a sentence in Methods.
 - A requested prediction is given as a prediction, with wide bounds.
 - Limitations contain what the author chose to put there. Things not done are not mentioned.
 - Rebuttal: concede what the reviewer raised and what is true, at its true scope. Do not
@@ -59,13 +70,20 @@ The output has two parts, in this order.
 have these shapes:
 - **A Results paragraph** is (1) a sentence that states the finding in words; (2) the
   evidence: the one to three numbers that carry this finding, with the panel that shows
-  them; (3) a sentence that says what follows from it for the paper's claim. Every other
+  them; (3) a sentence that says what follows from it for the paper's claim. A paragraph
+  that opens an analysis starts with (0) why it was done: the question it answers. A rule,
+  term or procedure gets what it is for at its first mention. Every other
   number the analysis produced goes to the figure, its data file, the Supplementary
   Information or Methods. A number a main claim of the paper rests on stays in the text.
   Before a result leaves the text, find the panel that shows it. A result no panel shows
   keeps one clause in the text; only its secondary numbers move out. The same holds for a
   result the recompute adds: a result no panel shows gets one clause in the text even if
   the old text did not have it.
+- **A result in Results is written as a number**: a percentage or a count out of a total,
+  beside what it is compared with ("24.6% of recorded neuron-sessions"). A quantity in words
+  ("a quarter", "one in six", "nine in ten", "nearly half") belongs to the Discussion. The
+  budget limits how dense the numbers are, not how they are spelled: a number in words
+  lightens nothing, and `count_numbers.py` counts it.
 - **Every control a result is tested against keeps one clause in the text**: what the result
   was compared with and that it held ("and better than its shuffled control in 27 of 29
   sessions"). Its spreads and test statistics go to the figure, its data file or Methods.
@@ -123,12 +141,18 @@ have these shapes:
    need move out, except a number a main claim rests on; a paragraph whose message it
    cannot state is rewritten. This check stands in for the author's reading between passes:
    the author reads the paper once or twice, not after every pass.
-3. **Old against new.** It gets every changed sentence beside the sentence it replaced and
-   answers one question: does the new one claim more? A wider scope (all sessions where
-   the old said one), a stronger verb (shows, proves, drives where the old said is
-   consistent with, reflects, relates to), cause where the old had association, a general
-   statement where the old had a measurement. Shortening invites exactly this. Each "yes"
-   is reverted to the old scope, or goes to the author if the data support the wider claim.
+3. **Old against new.** It gets every changed sentence beside the sentence it replaced, and
+   every removed paragraph, and answers two questions.
+   - Does the new one claim more? A wider scope (all sessions where the old said one), a
+     stronger verb (shows, proves, drives where the old said is consistent with, reflects,
+     relates to), cause where the old had association, a general statement where the old
+     had a measurement. Each "yes" is reverted to the old scope, or goes to the author if
+     the data support the wider claim.
+   - What did the old say that the new no longer says? Why an analysis was done, what a
+     result means, a whole result. Each loss is restored, or its removal goes to the
+     author as a proposal.
+
+   Shortening invites both.
 
 **Then sort it.** Go through it sentence by sentence and label each one: *result* (what was
 measured or shown), *meaning* (what it establishes), or *doubt* (a weakness, a missing
@@ -183,8 +207,13 @@ this output:
 
 These belong to the author and change only on the author's explicit word:
 - the abstract, the title, section and subsection headings;
-- the figures' design: a recompute changes the data in a figure, not its layout, style,
-  fonts or panel letters;
+- the figures: a recompute changes the data in the figure's own script, not its layout,
+  style, fonts, panel letters or its width in the manuscript. The example shown (a cell, a
+  trial, a session) is the author's choice. Any change to a figure is shown to the author,
+  old and new side by side, before it enters the manuscript. A problem found in an old
+  figure (an example from another experiment, a wrong label) is reported to the author,
+  not fixed silently;
+- the author's own terms ("nonparametric", "detected events"), as long as they are true;
 - citations, and the sentences that carry them. Cutting references to a limit is a
   proposal that quotes every sentence that would lose its citation or disappear;
 - the sentence that says what a result means, as long as it is true and is a meaning. If
@@ -238,11 +267,18 @@ the caveat.
 
 ## Red flags: the paragraph has become a report
 
-- a Results paragraph carrying more than three numbers, or a caption listing counts
+- a sentence chaining numbers, or a caption listing counts
+- a number written in words in Results ("a quarter", "one in six")
+- an analysis with no sentence on why it was done; a motivation or a whole result gone
+  after shortening
+- seeds, command lines or file names in Methods; a fact about the recording taken from a
+  software default
 - the same result given with and without a correction or a threshold
 - "(Methods)" with no subsection while the subsection's title is in view
 - a sentence about what a result means replaced by a more exact restatement of the result
-- a figure redrawn, a heading reworded or a citation dropped that the task did not name
+- a figure redrawn, its example replaced, a heading reworded or a citation dropped that
+  the task did not name
+- the method's scope narrowed with no search for the analyses that tested it
 - the revised manuscript of a review taken as the new base
 - a result rewritten from what a figure preview seems to show
 - a shortened sentence that claims more than the one it replaced

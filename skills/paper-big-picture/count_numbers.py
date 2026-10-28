@@ -8,6 +8,8 @@ Prints, for each \\section (and for captions separately): words, numbers, number
 
 What counts as a number: a quantity the reader is told. "0.28", "5{,}365", "p < 0.001",
 "27 of 29", "10^{-5}" (one number), "-0.07". Each number in a range or a list counts.
+A quantity in words counts like a digit: "a quarter of", "one in six", "nearly half"
+("majority", "first half" and "a third variable" do not).
 What does not count, because it names something rather than reports a value:
 - digits inside an identifier: F1, CA1, L2/3, S2, v1.2.2, R^2, F_1;
 - a number after a label: Fig. 2, Figure 3c, Table 1, Section 4, Eq. 5, Stage 1, Step 2,
@@ -20,6 +22,17 @@ import sys
 
 LABELS = r"(?:Figs?\.|Figures?|Tables?|Sections?|Sec\.|Eqs?\.|Equations?|Stages?|Steps?|" \
          r"Supplementary|Extended\s+Data|Methods|Panels?|Chapters?|Appendix|Note)"
+
+_W = r"(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|hundred)"
+_FR = r"(?:half|halves|thirds?|quarters?|fifths?|sixths?|tenths?)"
+# Order matters: each match becomes "1", so a qualified fraction counts once.
+VERBAL = [
+    r"\b(?:nearly|almost|about|roughly|over|under|(?:more|less|fewer)\s+than)\s+"
+    r"(?:a\s+|one\s+)?" + _FR + r"\b",
+    r"\b(?:a|" + _W + r")\s+" + _FR + r"\s+of\b",
+    r"\b" + _W + r"\s+(?:[a-z-]+\s+)?(?:in|out\s+of)\s+" + _W + r"\b",
+    r"(?<!first )(?<!second )(?<!last )(?<!other )\bhalf\s+of\b",
+]
 
 
 def _drop_braced(text, command):
@@ -78,6 +91,10 @@ def count_numbers(text):
     t = re.sub(r"\b[A-Za-z]+\d+[A-Za-z\d/]*\b", " ID ", t)
     t = re.sub(r"\b\d+[A-Za-z]+\b(?<!\d[st]h)", lambda m: " ID " if not re.fullmatch(
         r"\d+(?:st|nd|rd|th|s|ms|Hz|kHz|mm|cm|um|nm|min|h|d|x|fold|D)", m.group()) else m.group(), t)
+    # a quantity in words is still a quantity: "a quarter", "one in six" must not
+    # lower the count, or a pass can trade digits for words and look lighter
+    for pat in VERBAL:
+        t = re.sub(pat, " 1 ", t, flags=re.IGNORECASE)
     # labels followed by numbers (and panel letters / ranges)
     t = re.sub(LABELS + r"\s*\.?\s*(?:Fig\.\s*|Figure\s*)?S?\d+(?:\.\d+)*[a-z]?"
                r"(?:\s*[,–-]\s*(?:S?\d+[a-z]?|[a-z]\b))*", " LABEL ", t)
