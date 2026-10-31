@@ -1,6 +1,6 @@
 ---
 name: paper-big-picture
-description: Use when writing or editing any text of a scientific paper (including a recompute, review fixes or journal-format changes applied to a manuscript), abstract, thesis, grant or reply to reviewers (rebuttal), when reviewing or critiquing a manuscript, and when triaging reviewer or automated-tool comments. Also when the user says "напиши результаты/дискуссию/абстракт", "ответ рецензенту", "отрецензируй", "что главное в замечаниях", "разбери рецензии", or when academic-research-skills (ARS) produces drafts, reviews or revisions.
+description: Use when writing or editing any text of a scientific paper or its Supplementary Information (including a recompute, review fixes or journal-format changes applied to a manuscript), abstract, thesis, grant or reply to reviewers (rebuttal), when reviewing or critiquing a manuscript, and when triaging reviewer or automated-tool comments. Also when the user says "напиши результаты/дискуссию/абстракт", "ответ рецензенту", "отрецензируй", "что главное в замечаниях", "разбери рецензии", or when academic-research-skills (ARS) produces drafts, reviews or revisions.
 ---
 
 # Paper: big picture first, true claims instead of caveats
@@ -49,22 +49,31 @@ The output has two parts, in this order.
   support. A sentence about what the method cannot do is a *doubt* (see "Then sort it")
   unless the author wrote it.
 - A feature of the method is described by what it enables ("detects place fields"), not as
-  the repair of a deficiency ("makes place fields visible to the estimator").
+  the repair of a deficiency ("makes place fields visible to the estimator"). A contrast
+  ("unlike the main text", "has no explicit offset") tells the reader the other side has
+  the thing; write it only if that is true. An analysis or a dataset is justified by what it
+  gives (independent data, a known ground truth), not by a lack in the paper's own data
+  that is not one.
 - Numbers serve the message: see "The reader's budget" below. Discussion states the meaning
   without numbers unless the author asks for them.
 - Methods state the procedure as fact ("neurons were selected over the whole session"),
   with no verdict on it. They are written for a reader who wants to understand and repeat
   the procedure: each step with what it is for, and the reader's budget holds there too.
   Command lines, file and script names, configuration names, random seeds and the tool's
-  internals go to the code repository's README and one sentence in Code availability.
+  internals go to the code repository's README and one sentence in Code availability. So
+  does a check of the implementation that changed nothing in the data (a condition that
+  never fired, a test that the code computes what it should).
 - Facts about the experiment (durations, frame or sampling rates, numbers of animals and
-  sessions) come from the protocol, the recording's own metadata or the author, never from
-  a software default or from the analysis output alone. Something odd in them (two
-  durations under one protocol) is a question to the author, not a sentence in Methods.
+  sessions, which dataset a result comes from and whether two papers share it) come from
+  the protocol, the recording's own metadata or the author, never from a software default,
+  the analysis output alone or a similar setup. Something odd in them (two durations under
+  one protocol) is a question to the author, not a sentence in Methods.
 - A requested prediction is given as a prediction, with wide bounds.
 - Limitations contain what the author chose to put there. Things not done are not mentioned.
 - Rebuttal: concede what the reviewer raised and what is true, at its true scope. Do not
-  bring up weaknesses nobody raised.
+  bring up weaknesses nobody raised. An answer written for a reviewer, real or simulated,
+  enters the paper only if the reader needs it: would it change what the reader does or
+  concludes? If not, it stays in the reply.
 
 **The reader's budget.** A paper is read by a person, not checked by a ledger. Its parts
 have these shapes:
@@ -93,6 +102,11 @@ have these shapes:
   way in both; otherwise name the one comparison that holds.
 - **A number given at a chosen cut-off** says in a clause why that cut-off, or is replaced
   by the trend over the range the panel shows.
+- **A result that departs from what the reader expects** (from another method, from another
+  part of the paper, from what the design predicts, or only for some variables) carries its
+  cause in a clause: measured, or a pointer to where the paper states it. Without one the
+  reader takes it for an anomaly the authors could not explain. A cause that is only a
+  hypothesis goes to the author with the place; the author decides whether it enters.
 - **Results names what a procedure achieves** in one clause and points to Methods; its
   steps, criteria and thresholds are Methods. A criterion that decides which data enter a
   result (an inclusion threshold, how many were left out) stays in the text as one clause.
@@ -125,8 +139,22 @@ have these shapes:
   is not applied now. When meeting it means cutting or rewriting the author's text (a word
   limit, a reference limit, a required section), it is a proposal to the author, not an
   edit.
-- **The Supplementary Information follows the same rules.** Its counts and per-condition
-  values go into its tables, not into its sentences.
+- **The Supplementary Information follows the same rules**, and it is read apart from the
+  paper, by a reader who arrives from one pointer:
+  - each section opens with the question it answers and names the claim of the main text it
+    serves. A section that serves none is a question to the author (cut it or move it): a
+    result attached for weight weakens the paper;
+  - every term is defined at its first use in the SI, and every reference inside it carries
+    the prefix ("Supplementary Table 3", "Supplementary Fig. 1"); a bare "Fig. 1" there
+    reads as the main text's figure;
+  - an analysis set up differently from the main text (another delay window, no threshold)
+    says why in a clause, or the reader concludes the main setting failed there. A
+    parameter both describe is given the same way in both;
+  - another method is first described in words, what it does and what it is for; its
+    settings, variants, counts and per-condition values go to tables. A result stated in
+    the main text or elsewhere in the SI is pointed to, not repeated.
+- **One spelling** everywhere (text, SI, captions, the labels drawn on the figures): the one
+  the author chose; if the author has not said, the one of the title, stated in the note.
 - **Measure it.** Report numbers per 100 words for each changed section, before and after
   the pass, with `count_numbers.py` next to this file (`python count_numbers.py OLD.tex
   NEW.tex`): one counting rule for every pass, so that labels and names such as "Stage 1",
@@ -135,14 +163,17 @@ have these shapes:
 
 **Before handing over Part 1, run three checks, each by a fresh agent.**
 1. **Numbers against their sources**: every number introduced or changed (paper-claim-audit
-   when the paper has a map).
-2. **The reader.** It gets each changed Results paragraph alone and answers: what is its
-   message, in one sentence, and which numbers did it need for that. Numbers it did not
-   need move out, except a number a main claim rests on; a paragraph whose message it
-   cannot state is rewritten. This check stands in for the author's reading between passes:
-   the author reads the paper once or twice, not after every pass.
+   when the paper has a map). A criterion or procedure restated from the main text is quoted
+   in full or pointed to, never shortened.
+2. **The reader.** It gets each changed paragraph of Results and of the Supplementary
+   Information alone and answers: what is its message, in one sentence; which numbers did
+   it need for that; what would it ask the authors. Numbers it did not need move out,
+   except a number a main claim rests on; a paragraph whose message it cannot state is
+   rewritten; each question is answered in the text (a term defined, a cause given) or goes
+   to the author. This check stands in for the author's reading between passes: the author
+   reads the paper once or twice, not after every pass.
 3. **Old against new.** It gets every changed sentence beside the sentence it replaced, and
-   every removed paragraph, and answers two questions.
+   every removed paragraph, and answers three questions.
    - Does the new one claim more? A wider scope (all sessions where the old said one), a
      stronger verb (shows, proves, drives where the old said is consistent with, reflects,
      relates to), cause where the old had association, a general statement where the old
@@ -151,8 +182,17 @@ have these shapes:
    - What did the old say that the new no longer says? Why an analysis was done, what a
      result means, a whole result. Each loss is restored, or its removal goes to the
      author as a proposal.
+   - Did the new replace the author's own wording while it was true and broke no rule of
+     this skill? Restore it. Wording that breaks a rule stays rewritten; the note shows the
+     author both.
 
-   Shortening invites both.
+   Shortening invites all three. A new sentence of meaning, with nothing old beside it, is
+   checked against every result of the paper and the SI that bears on it (the map's
+   mentions, the synthetic tests), not only against its own paragraph.
+
+Then run avoid-ai-writing in detect mode over the new and changed sentences, and over the
+whole text when the task is to make it read well; fix what it finds without touching the
+author's terms.
 
 **Then sort it.** Go through it sentence by sentence and label each one: *result* (what was
 measured or shown), *meaning* (what it establishes), or *doubt* (a weakness, a missing
@@ -178,13 +218,18 @@ The output has three parts, in this order.
 1. **Verdict** in one sentence, as the area chair would write it.
 2. **Decisive questions, at most three.** The first is always the significance question:
    *what does the reader learn here that existing methods or known results did not give?*
-   Others: is the measured quantity the claimed one; does the conclusion survive; can a
-   reader follow the message without wading through numbers. Each is one plain-words
+   Others: is each comparison with another method made on equal terms; is the measured
+   quantity the claimed one; does the conclusion survive; can a reader follow the message
+   without wading through numbers. Each is one plain-words
    question a human reviewer would ask aloud, plus at most three sentences:
    why it decides the outcome and what answer would settle it. Estimators, statistics and
    prior-work citations that support it go to part 3.
 3. **Everything else**: one line per item. A claim from an automated tool about the data or
    a figure is checked against the data before it is accepted.
+
+Before the verdict on a whole paper, sweep it, SI included, for results that depart from
+expectation with no cause stated (paper-claim-audit, "Unexplained results"): an unexplained
+gap between two methods is often an unequal comparison.
 
 When the user is the author, the best answer to a decisive question is usually a
 reframing or one targeted analysis, not a programme of new experiments.
@@ -196,12 +241,18 @@ decision the author stated explicitly; a later decision outranks an older senten
 previous agent pass introduced is not the author's. If you cannot tell which is which,
 compare with the author's last version or ask once.
 
-A task to make the text ready, clean or readable names the reader's budget: applying it to
-Results paragraphs and captions, including agent-introduced text, is the task itself.
+A task to make the text ready, clean or readable names the reader's budget and, for the
+Supplementary Information, its rules: applying them to Results paragraphs, captions and
+every SI paragraph, including agent-introduced text, is the task itself. A sentence that
+breaks one of them (a contrast that is not true, a term used before it is defined, a
+justification by a lack the paper's data do not have, a verdict in place of what was shown)
+is rewritten, not kept as the author's.
 
 Every pass over existing text (a recompute, review fixes, journal format, shortening) has
 this output:
-1. **The changes the task names**, made in a new version of the file.
+1. **The changes the task names.** A real pass (a batch of the author's comments, a review,
+   a recompute) goes into a new version of the file; a small fix (a sentence, a few
+   numbers, one panel) goes into the version in progress, with a line in its log.
 2. **Everything else you would change, as proposals**: old text quoted, new text, one line
    why. Not applied.
 
@@ -209,7 +260,9 @@ These belong to the author and change only on the author's explicit word:
 - the abstract, the title, section and subsection headings;
 - the figures: a recompute changes the data in the figure's own script, not its layout,
   style, fonts, panel letters or its width in the manuscript. The example shown (a cell, a
-  trial, a session) is the author's choice. Any change to a figure is shown to the author,
+  trial, a session) is the author's choice; when a new one is needed, propose two or three
+  that show the effect clearly, from sessions where the behaviour was well sampled, with
+  the criterion they were picked by. Any change to a figure is shown to the author,
   old and new side by side, before it enters the manuscript. A problem found in an old
   figure (an example from another experiment, a wrong label) is reported to the author,
   not fixed silently;
@@ -282,3 +335,6 @@ the caveat.
 - the revised manuscript of a review taken as the new base
 - a result rewritten from what a figure preview seems to show
 - a shortened sentence that claims more than the one it replaced
+- an SI section that serves no claim of the main text; an SI term never defined; a bare
+  "Fig. 1" inside the SI; a result that differs from another method with no cause stated
+- an implementation check that decided nothing, or an answer to a reviewer, in Methods

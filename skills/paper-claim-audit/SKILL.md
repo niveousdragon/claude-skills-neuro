@@ -1,6 +1,6 @@
 ---
 name: paper-claim-audit
-description: Use when a manuscript, preprint, thesis chapter or revision must be checked against its own sources before submission or resubmission - numbers in the text against scripts and output files, figure descriptions against the figures and data, Methods against the code, and mentions of the same result against each other. Also when the user says "сверь статью с данными", "проверь числа в статье", "откуда это число", "проверь перед подачей", "аудит рукописи", "сходятся ли текст и рисунки", "можно ли подавать", "что из находок критично".
+description: Use when a manuscript, preprint, thesis chapter or revision must be checked against its own sources before submission or resubmission - numbers in the text against scripts and output files, figure descriptions against the figures and data, Methods against the code, mentions of the same result against each other (Supplementary Information included), comparisons with other methods for equal terms, cited theorems against the cited work, and results left unexplained. Also when the user says "сверь статью с данными", "проверь числа в статье", "откуда это число", "проверь перед подачей", "аудит рукописи", "сходятся ли текст и рисунки", "можно ли подавать", "что из находок критично".
 ---
 
 # Paper claim audit: every claim against its source, effort fixed in advance
@@ -32,7 +32,16 @@ and its limit of three: every CRITICAL is shown, and of the HIGH three are expla
    - **recompute any number whose recomputation from caches or raw data fits in about 15
      minutes.** "Cannot verify" is allowed only when it would take longer or the source does
      not exist, and the findings say which;
-   - the whole paper: every section, every figure panel, every Methods subsection.
+   - the whole paper: every section, every figure panel, every Methods subsection, and the
+     Supplementary Information.
+4. **Know which whole-paper checks are due.** Keep a log in the project: each whole-paper
+   check (agreement of Abstract, Results, Discussion, captions and SI; Methods against code
+   and recording; comparisons; cited results; unexplained results; journal requirements),
+   the version it ran on, the date, where its report is. A check is due again once the
+   base of the paper has changed since (a recompute, a redrawn figure, a rewritten
+   section): checks of the changed places in each pass do not see drift between sections.
+   Before a long audit, show the user the checks you will run and those you will not, one
+   line each, and give every helper the author's settled decisions.
 
 Building the map is most of the work: a whole-paper audit takes hours. Where the harness offers
 background workers that outlive the turn, run it as one.
@@ -70,11 +79,31 @@ sources against value, the conditions of the argument. What remains needs you:
 - **Source.** Value in source equals value in text, at the stated precision.
 - **Population.** The text's population equals the computed one. A number from one cohort
   presented as both cohorts' is a finding even when the arithmetic is right.
-- **Mentions.** All mentions agree with each other, including figure panels and old values
-  left in the Discussion.
+- **Mentions.** All mentions agree with each other, including figure panels, old values
+  left in the Discussion and restatements of the main text in the Supplementary
+  Information.
 - **Descriptions.** A description of a figure matches the figure itself and its data; open
-  the image.
+  the image. A panel is drawn from the data: a figure script that falls back to generated
+  points when no data file is passed draws a plausible fake.
 - **Controls.** A claim about what a control shows matches the control's numbers.
+- **Comparisons.** For every comparison with another method or a baseline, write the table
+  of its settings on both sides: the statistic and its null model (the route to the
+  p-value), delays, feature selection, sign or direction rules, thresholds,
+  preprocessing, the data each side saw. A setting that differs, or a shared one that
+  suits only one side (a null model fitted for one statistic and applied to the other), is
+  a finding unless the paper claims it as the method's contribution. A control meant to
+  show that a difference does not matter counts only on data where it could have mattered:
+  a per-feature test run on independent variables cannot differ from a joint one.
+- **Cited results.** Each theorem, estimator or method cited to justify a step is read in
+  the cited work: the same quantity, the same sign convention, its conditions met where
+  the paper uses it. A condition that cannot hold under the paper's own definitions is a
+  finding.
+- **Unexplained results.** A fresh helper reads the whole text, SI included, and lists each
+  result that departs from expectation, from another method or from another part of the
+  paper with no cause stated near it. Each gets one of: the cause is stated elsewhere
+  (point to it); it can be measured in about 15 minutes (measure it); it is a hypothesis
+  (a question to the author, with the place). An unexplained gap between two methods is
+  often an unequal comparison: run Comparisons on it.
 - **Methods against code.** Parameters, thresholds, units, rates, the stages that were
   actually run.
 - **Methods against the recording.** Facts about the experiment (durations, frame or
@@ -132,7 +161,8 @@ level with its reason, a finding of your own reading as `NOTE`.
 5. **LOW**: the count here; the list in a separate file beside the findings.
 6. **Questions for the author** - framing, choice of method, how a figure looks: matters of
    judgement, stated as questions, never as errors. A CRITICAL resting only on your condition
-   goes here.
+   goes here. Separately, the points kept for the reply to reviewers: true, but they change
+   no claim and do not enter the text.
 7. **Not checked** - each item with the reason (longer than 15 minutes, no source, source
    changed after version). Name what the map does not see: a proofreading of the text
    (references to panels, wording) unless it was done. No CRITICAL does not mean a clean paper.
@@ -156,6 +186,9 @@ and the last `check` report. Do not edit the manuscript or any file outside your
 | a contradicting earlier verdict taken as settled | report the data beside the verdict |
 | a judgement call reported as an error | move it to questions for the author |
 | a recording's frame rate or duration checked against the code that assumed it | check it against the raw files' metadata or the protocol |
+| a comparison with another method checked for its numbers only | the table of settings on both sides; a null model that suits one side only is a difference |
+| a cited theorem taken as the Methods state it | read the cited work: quantity, sign, conditions |
+| "every version was checked", because each pass checked what it changed | the log of whole-paper checks by version; due again after the base changed |
 | a ledger table kept beside the map | one ledger: the map |
 | a `check` finding reported without opening the source | verify it; the map can be wrong too |
 | time "about an hour" by feel | timestamps |

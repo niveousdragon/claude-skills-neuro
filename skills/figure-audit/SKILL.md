@@ -1,6 +1,6 @@
 ---
 name: figure-audit
-description: Use when a figure is being prepared for or checked before journal submission — sizing to a journal column (single, 1.5, double), font sizes at print size, fonts not embedded or Type 3, file format, compression, dpi or file size the journal accepts, text overlapping or cut off, or journal figure rules (Nature, Nature Neuroscience, Cell/Neuron, eNeuro, PLOS, eLife). Also when the user says "подготовь рисунок для журнала", "проверь рисунок перед подачей", "подходит ли рисунок под требования", "в одну колонку / в полторы колонки".
+description: Use when a figure is being prepared for or checked before journal submission — sizing to a journal column (single, 1.5, double), font sizes at print size, fonts not embedded or Type 3, file format, compression, dpi or file size the journal accepts, text overlapping or cut off, a figure redrawn after a recompute (marks aligned across subplots, axis ranges that still show the data, the example shown), or journal figure rules (Nature, Nature Neuroscience, Cell/Neuron, eNeuro, PLOS, eLife). Also when the user says "подготовь рисунок для журнала", "проверь рисунок перед подачей", "подходит ли рисунок под требования", "в одну колонку / в полторы колонки".
 ---
 
 # Figure audit
@@ -40,6 +40,18 @@ the figure is the author's decision: fonts, sizes, layout, width in the manuscri
 examples shown stay as the author made them until the author agrees to a change, shown old
 and new side by side. A new figure, or one the author asked to rebuild, follows the
 workflow above.
+
+**After the data change** (a recompute redraws the figure from its own script), put the new
+figure beside the old one and look for what the audit cannot see:
+- marks of one kind (p-values, thresholds, significance stars) stand at the same height and
+  place in every subplot of a panel;
+- each axis still shows the data: no points pressed against a limit, no range left mostly
+  empty. A new range is shown to the author;
+- the example (a cell, a trial) still shows the effect clearly. When a new one is needed,
+  propose two or three from well-sampled sessions with the criterion they were picked by;
+  the author chooses;
+- every panel shows real data or is labelled a schematic, and the labels drawn on it follow
+  the manuscript's spelling.
 
 ## Quick reference (checked 2026-09-19; the script's table is authoritative)
 

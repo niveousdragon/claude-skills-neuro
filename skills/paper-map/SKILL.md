@@ -110,7 +110,9 @@ around it in the map.
 7. **Anchor and check until clean.** `place-anchors`, then `check`. Clean means no integrity errors and
    no paragraph without an anchor. `check` reads the whole document, the appendix after the references
    included; sections left out on purpose, or mapped only in part, go to `coverage_exclude` (anchors
-   inside them are still checked). Findings (MISMATCH, SCOPE, CONFLICT, BROKEN, INCONSISTENT,
+   inside them are still checked). It does not follow `\input`: when the Supplementary Information or a
+   part of the paper lives in its own file, map a merged copy, or every restatement of a main-text
+   result in the SI stays outside the map. Findings (MISMATCH, SCOPE, CONFLICT, BROKEN, INCONSISTENT,
    OVERSTATED) and the ARGUMENT section are for the author: keep them. In the Abstract, Results,
    Discussion and captions, a number outside the quote of every mention is a missed mention, or not a
    claim at all (a figure number). Two parameters set on the same line to the same value are usually one
