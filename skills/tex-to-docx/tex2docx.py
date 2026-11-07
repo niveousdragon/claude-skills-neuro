@@ -180,7 +180,8 @@ def find_bibliography(tex_text, tex_dir):
                 continue
             cand = tex_dir / name
             if cand.suffix != ".bib":
-                cand = cand.with_suffix(".bib")
+                # "references_v11.1" is references_v11.1.bib, as bibtex reads it
+                cand = cand.with_name(cand.name + ".bib")
             key = str(cand.resolve()).lower()
             if cand.exists() and key not in seen:
                 seen.add(key)
@@ -417,8 +418,9 @@ def expand_inputs(text, base_dir, seen=None, depth=0, skip=frozenset()):
     def repl(m):
         name = m.group(2).strip()
         path = base_dir / name
-        if not path.suffix:
-            path = path.with_suffix(".tex")
+        if not path.is_file():
+            # LaTeX adds .tex to the name as given: "appendix_v11.1" is appendix_v11.1.tex
+            path = path.with_name(path.name + ".tex")
         if path.stem.lower() in skip:
             return ""
         key = str(path.resolve()).lower()

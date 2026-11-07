@@ -85,6 +85,9 @@ a publisher record or they do not go in.
 - You are typing `author = {` by hand into any `.bib`
 - You are expanding "J. S." into a full name without a byline in front of you
 - You found no DOI and are about to guess fields instead of using `manual:`+`verified:`
+- A key's year differs from the entry's year (`friston2016functional` for a 2011 paper):
+  any report that lists the entry names it as "author, year" beside the key and says the
+  key's year is not the paper's
 
 ## Files
 

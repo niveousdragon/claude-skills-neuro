@@ -71,9 +71,11 @@
 `figure-alignment/`, `figure-audit/`, `tex-to-docx/`, `share-figure/`, `auditing-structural-debt/`,
 `lossless-doc-compress/`, `bibliography-lockfile/`, `msu-publication-clearance/`,
 `meeting-memo/`, `report/`, `paper-big-picture/`, `avoid-ai-writing/`, `paper-claim-audit/` и `paper-map/`,
-в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`,
+в каждой есть `SKILL.md` (в `tex-to-docx/` рядом с ним — `tex2docx.py`, `compare_rounds.py`, `aux_numbers.py`,
+`round_labels.py` и `test_compare_rounds.py`,
 в `paper-map/` — `paper_map.py`, `MAP_FORMAT.md` и `test_paper_map.py`,
-в `paper-big-picture/` — `count_numbers.py` и `test_count_numbers.py`,
+в `paper-big-picture/` — `count_numbers.py`, `find_repeats.py`, их тесты и подпапка
+`references/` с `revision.md`,
 в `msu-publication-clearance/` — `fill_clearance.py`,
 в `meeting-memo/` — `transcribe.py`, `setup.ps1` и `setup.sh`,
 в `figure-audit/` — `figaudit.py` и `LICENSE-OpenResearch`,
@@ -94,6 +96,11 @@
 чтобы векторные картинки (PDF/EPS) не оказались в Word пустыми рамками. Остальные
 скиллы ничего ставить в систему не требуют, так что на этом шаге не блокируйся:
 если пользователь не собирается конвертировать LaTeX в Word, отложи и иди дальше.
+Режиму сравнения версий (`compare_rounds.py`: Word-файл с правками, у каждой правки подпись
+раунда «кто, дата: зачем») нужны ещё установленный MS Word, `pywin32`, `python-docx`, `lxml` и
+`latexmk` (номера рисунков и ссылок он берёт из `.aux`). Проверка:
+`python ~/.claude/skills/tex-to-docx/test_compare_rounds.py`. Ставь, когда пользователь
+впервые попросит сравнение версий.
 
 **Внешняя зависимость (только для `figure-audit`).** Проверке рисунка из скрипта нужен
 лишь matplotlib, который у пользователя уже стоит, раз он строит рисунки. Проверке
@@ -124,8 +131,9 @@ Anaconda он уже есть); без Word скрипт заполняет бл
 статьи `paper_map.py` нужен Python 3 с пакетом `pyyaml` (`pip install pyyaml`; в Anaconda он
 уже есть). Проверка: `python ~/.claude/skills/paper-map/test_paper_map.py` печатает
 `ALL PASSED`. Не блокируйся: ставь, когда пользователь впервые попросит сверку или карту статьи.
-Скрипту `count_numbers.py` из `paper-big-picture` нужен только Python 3, без пакетов. Проверка:
-`python ~/.claude/skills/paper-big-picture/test_count_numbers.py` печатает `ALL PASSED`.
+Скриптам `count_numbers.py` и `find_repeats.py` из `paper-big-picture` нужен только Python 3, без
+пакетов. Проверка: `python ~/.claude/skills/paper-big-picture/test_count_numbers.py` и
+`test_find_repeats.py` рядом печатают `ALL PASSED`.
 
 **Внешняя зависимость (только для `auditing-structural-debt`).** Скрипту переписи
 `census.sh` нужны git и POSIX-оболочка: на Windows это Git Bash, он ставится вместе
@@ -189,7 +197,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `deep-analysis` | `~/.claude/skills/deep-analysis/SKILL.md` | папка на месте |
 | `figure-alignment` | `~/.claude/skills/figure-alignment/SKILL.md` | папка на месте |
 | `figure-audit` | `~/.claude/skills/figure-audit/SKILL.md` | папка на месте, рядом `figaudit.py` |
-| `tex-to-docx` | `~/.claude/skills/tex-to-docx/SKILL.md` | папка на месте, рядом `tex2docx.py` |
+| `tex-to-docx` | `~/.claude/skills/tex-to-docx/SKILL.md` | папка на месте, рядом `tex2docx.py`, `compare_rounds.py` |
 | `share-figure` | `~/.claude/skills/share-figure/SKILL.md` | папка на месте |
 | `auditing-structural-debt` | `~/.claude/skills/auditing-structural-debt/SKILL.md` | папка на месте, рядом ещё 4 файла |
 | `lossless-doc-compress` | `~/.claude/skills/lossless-doc-compress/SKILL.md` | папка на месте, рядом `references/` с 5 файлами |
@@ -198,7 +206,7 @@ Code. **Ты, скорее всего, не можешь выполнить их
 | `report` | `~/.claude/skills/report/SKILL.md` | папка на месте |
 | `meeting-memo` | `~/.claude/skills/meeting-memo/SKILL.md` | папка на месте, рядом `transcribe.py`, `setup.ps1`, `setup.sh` |
 | `avoid-ai-writing` | `~/.claude/skills/avoid-ai-writing/SKILL.md` | папка на месте, рядом `ORIGIN.md` и `LICENSE` |
-| `paper-big-picture` | `~/.claude/skills/paper-big-picture/SKILL.md` | папка на месте, рядом `count_numbers.py`, `test_count_numbers.py` |
+| `paper-big-picture` | `~/.claude/skills/paper-big-picture/SKILL.md` | папка на месте, рядом `count_numbers.py`, `find_repeats.py`, `references/revision.md` |
 | `paper-claim-audit` | `~/.claude/skills/paper-claim-audit/SKILL.md` | папка на месте |
 | `paper-map` | `~/.claude/skills/paper-map/SKILL.md` | папка на месте, рядом `paper_map.py`, `MAP_FORMAT.md`, `test_paper_map.py` |
 | общий протокол | блок с метками `claude-skills-neuro:protocol` в `~/.claude/CLAUDE.md` | предложен пользователю; если согласился — блок на месте, один |
@@ -240,7 +248,10 @@ Code. **Ты, скорее всего, не можешь выполнить их
 - **`tex-to-docx`** — перевести `.tex`-статью в Word для соавтора, редактора или
   журнала: картинки (включая векторные PDF/EPS), формулы, таблицы, цитаты и
   кросс-ссылки сохраняются, а комментарии и черновые пометки в файл не попадают.
-  Нужен `pandoc`; конвертер лежит рядом со `SKILL.md`.
+  Нужен `pandoc`; конвертер лежит рядом со `SKILL.md`. Режим сравнения версий собирает
+  Word-файл с правками от одной версии к другой; у каждой правки автор — подпись раунда
+  «кто, дата: зачем» из журнала раундов рядом с рукописью, номера рисунков и ссылок не
+  дают ложных правок.
 - **`share-figure`** — собрать фигуру для отправки коллеге/рецензенту так, чтобы её
   можно было воспроизвести: картинка + генерирующий код + ровно нужные данные +
   provenance; «готово» = чистая копия бандла воспроизводит фигуру, а не «скрипт
@@ -309,7 +320,10 @@ Code. **Ты, скорее всего, не можешь выполнить их
   примеры для них не выбирает без автора;
   требования журнала соблюдает, только процитировав их со страниц журнала, и сообщает о них
   автору. Главнее правил `academic-research-skills`: незакрытые замечания не превращаются
-  в «Acknowledged Limitations», квоты на слабости не выполняются.
+  в «Acknowledged Limitations», квоты на слабости не выполняются. Доработка после рецензии
+  (камера-реди, обещания рецензентам, лимит страниц, правки соавтора) идёт по
+  `references/revision.md`: раунды правок с подписями, обещание — один раз и утверждением,
+  поиск дословных повторов скриптом, сверка готовой версии с правилами автора свежим агентом.
 - **`paper-claim-audit`** — сверить рукопись с её собственными источниками перед подачей или
   повторной подачей. Числа в тексте сверяются со скриптами и файлами результатов, описания
   рисунков — с рисунками, Methods — с кодом и с метаданными самих записей (частота кадров,

@@ -1,6 +1,6 @@
 ---
 name: paper-big-picture
-description: Use when writing or editing any text of a scientific paper or its Supplementary Information (including a recompute, review fixes or journal-format changes applied to a manuscript), abstract, thesis, grant or reply to reviewers (rebuttal), when reviewing or critiquing a manuscript, and when triaging reviewer or automated-tool comments. Also when the user says "напиши результаты/дискуссию/абстракт", "ответ рецензенту", "отрецензируй", "что главное в замечаниях", "разбери рецензии", or when academic-research-skills (ARS) produces drafts, reviews or revisions.
+description: Use when writing or editing any text of a scientific paper or its Supplementary Information (including a recompute, review fixes, a camera-ready version, a page limit, a co-author's edits or journal-format changes applied to a manuscript), abstract, thesis, grant or reply to reviewers (rebuttal), when reviewing or critiquing a manuscript, and when triaging reviewer or automated-tool comments. Also when the user says "напиши результаты/дискуссию/абстракт", "ответ рецензенту", "отрецензируй", "что главное в замечаниях", "разбери рецензии", or when academic-research-skills (ARS) produces drafts, reviews or revisions.
 ---
 
 # Paper: big picture first, true claims instead of caveats
@@ -19,6 +19,9 @@ one message per paragraph. This skill imposes both bottlenecks on purpose.
 Honesty has two channels and they do not mix:
 - **with the author** — every doubt, weakness and risk, stated plainly and first;
 - **in the paper** — true claims about what was shown. The author decides what else enters.
+
+**Revision after review** (a camera-ready version, a register of promises to reviewers, a
+page limit, a co-author's edits): also read `references/revision.md` next to this file.
 
 ## Step 1. Closed-book pass (always first)
 
@@ -59,8 +62,9 @@ The output has two parts, in this order.
 - Methods state the procedure as fact ("neurons were selected over the whole session"),
   with no verdict on it. They are written for a reader who wants to understand and repeat
   the procedure: each step with what it is for, and the reader's budget holds there too.
-  Command lines, file and script names, configuration names, random seeds and the tool's
-  internals go to the code repository's README and one sentence in Code availability. So
+  Command lines, file and script names, commit hashes, variable names, configuration names,
+  random seeds and the tool's internals go to the code repository's README and one sentence
+  in Code availability, never into the text or a footnote anywhere in the paper. So
   does a check of the implementation that changed nothing in the data (a condition that
   never fired, a test that the code computes what it should).
 - Facts about the experiment (durations, frame or sampling rates, numbers of animals and
@@ -136,9 +140,9 @@ have these shapes:
   it in the form that costs the reader least, and list it in the note to the author with
   the quote. Note the stage it applies to (initial submission, revision, accepted
   manuscript): a requirement of a later stage goes to the author's list for that stage and
-  is not applied now. When meeting it means cutting or rewriting the author's text (a word
-  limit, a reference limit, a required section), it is a proposal to the author, not an
-  edit.
+  is not applied now. A page or word limit is met as `references/revision.md` says; when
+  meeting another requirement means cutting or rewriting the author's text (a reference
+  limit, a required section), it is a proposal to the author, not an edit.
 - **The Supplementary Information follows the same rules**, and it is read apart from the
   paper, by a reader who arrives from one pointer:
   - each section opens with the question it answers and names the claim of the main text it
@@ -159,7 +163,10 @@ have these shapes:
   the pass, with `count_numbers.py` next to this file (`python count_numbers.py OLD.tex
   NEW.tex`): one counting rule for every pass, so that labels and names such as "Stage 1",
   "F1" or "Fig. 2" are not counted as numbers. A rise is a change the author has to approve,
-  with the reason.
+  with the reason. `find_repeats.py` lists phrases repeated word for word.
+- **A proportion is described by what it is**: 75 of 100 is most, not "near parity". A
+  method that changed little is described by what it established, not by how little it
+  changed.
 
 **Before handing over Part 1, run three checks, each by a fresh agent.**
 1. **Numbers against their sources**: every number introduced or changed (paper-claim-audit
@@ -252,7 +259,9 @@ Every pass over existing text (a recompute, review fixes, journal format, shorte
 this output:
 1. **The changes the task names.** A real pass (a batch of the author's comments, a review,
    a recompute) goes into a new version of the file; a small fix (a sentence, a few
-   numbers, one panel) goes into the version in progress, with a line in its log.
+   numbers, one panel) goes into the version in progress, with a line in its log. Each
+   version is one source of edits and gets a label, "who, date: why", in the rounds log
+   (`references/revision.md`), so that the author's comparison shows who made each change.
 2. **Everything else you would change, as proposals**: old text quoted, new text, one line
    why. Not applied.
 
@@ -338,3 +347,5 @@ the caveat.
 - an SI section that serves no claim of the main text; an SI term never defined; a bare
   "Fig. 1" inside the SI; a result that differs from another method with no cause stated
 - an implementation check that decided nothing, or an answer to a reviewer, in Methods
+- the same phrase, word for word, in three places; a commit hash or a script name anywhere
+  in the paper

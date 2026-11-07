@@ -1,6 +1,6 @@
 ---
 name: tex-to-docx
-description: Use when converting a LaTeX (.tex) manuscript to a Word (.docx) file for a co-author, reviewer, or editor who does not use LaTeX — figures (including PDF/EPS), citations, cross-references, tables, and math must survive intact, and no LaTeX comments, TODO notes, or author annotations may leak into the output.
+description: Use when converting a LaTeX (.tex) manuscript to a Word (.docx) file for a co-author, reviewer, or editor who does not use LaTeX — figures (including PDF/EPS), citations, cross-references, tables, and math must survive intact, and no LaTeX comments, TODO notes, or author annotations may leak into the output. Also when the author reads the changes between versions of a LaTeX paper in Word (tracked changes) and every change must say who made it and why — «сравнение в Word», «дифф с v11», «правки с пометкой, кто и когда», «кто это убрал?».
 ---
 
 # tex-to-docx
@@ -118,6 +118,82 @@ What is carried across, and what is deliberately not:
    under pandoc — check that such a section survived before shipping.
 8. **Self-verifies.** After conversion it reports embedded media count, inline
    image references, and native-equation count so you can confirm nothing dropped.
+
+## Comparison mode: every change signed with its round
+
+The author reads what changed between versions in Word's tracked changes, and a
+change the author cannot place costs a question: "who removed this?", "did we drop
+this result?". [`compare_rounds.py`](compare_rounds.py) makes **one** Word file
+from the first saved version to the last, in which the author of each change is
+the caption of the round that made it and its date the round's date. Nobody
+confirms changes one by one; the author sees the source and rejects with one click.
+
+Input is a **round log**, a text file next to the manuscript, one line per saved
+version (snapshot), oldest first; paths relative to the log:
+
+```
+# path to .tex | dd.mm.yyyy | caption of the round that produced this version
+submission/paper.tex   | 07.05.2026 | submitted
+rounds/1105/paper.tex  | 05.11.2026 | агент по умолчанию, 05.11: обещания рецензентам, автор не решал
+rounds/1106/paper.tex  | 06.11.2026 | по решению автора, 06.11
+rounds/1107/paper.tex  | 07.11.2026 | агент, 07.11: сокращение под 10 страниц | aux: build/paper.aux
+```
+
+The first caption is not used. Optional fields: `aux:` when the `.aux` of that
+version is neither next to it nor in a `build*/` folder beside it (otherwise
+`latexmk` builds one into the output folder; the source folder is not written);
+`dir:` when a snapshot is a copy saved away from the manuscript, so its figures
+and `.bib` are found where LaTeX found them.
+
+**Captions say who and why in the author's words**, e.g. `агент, 06.11:
+сокращение под 10 страниц`, `по решению автора, 05.11`, `агент по умолчанию,
+05.11: автор не решал`, `соавтор (PDF 03.11): снята фраза` (by what the change
+does), `обещание рецензенту, 05.11: <what, in words>`, `пересчёт, 04.11`. A round
+that mixed sources says so (`соавтор (PDF 03.11) + решения автора`); the remedy is
+upstream — one round, one source, and a snapshot saved after each round. A caption
+names **every** source of its round: write it from the round's own notes read to the
+end, then check 20 changes drawn at random (seed written down first) against those
+notes. A caption naming half the sources is a confident wrong answer to "who".
+In a mixed round the caption answers "who and did the author decide", not "why".
+
+```bash
+python compare_rounds.py rounds.txt -o OUTDIR [--csl style.csl] [--pairs] [--reuse]
+```
+
+How it works: every snapshot goes through one pipeline — [`aux_numbers.py`](aux_numbers.py)
+writes the numbers LaTeX printed (headings, captions, `\ref`/`\eqref`/`\cref`/`\autoref`,
+macros wrapping `\ref`, `§`) from that version's `.aux`, so no empty reference reaches
+Word. A labelled heading, figure, table or reference carries the number it has in the
+**last** version, in every version: a new figure then does not show as "Figure S2 → S3"
+at each mention — the author does not review numbering, and the last version's numbers
+are LaTeX's own. Then tex2docx, references under their heading,
+picture descriptions neutral and machine paths removed. Word compares the first with
+the last. [`round_labels.py`](round_labels.py) follows each word of the first version
+forward to the round that removed it and each word of the last back to the round that
+added it; a change takes the round of most of its words (rounds holding at least a
+quarter of them are joined with ` + `). A change no snapshot explains takes the
+caption of its neighbour in the same paragraph, else `источник не определён`.
+
+Checks run before handing over; they are printed and saved as `<name>_checks.txt`,
+and the script exits 1 if one fails:
+
+- "accept all" = last version, "reject all" = first — in the XML and in Word itself.
+  Word rewrites letters inside equations (math italic, minus as hyphen); that is
+  reported separately and is not a text difference.
+- empty references 0 in every version; number-only changes (renumbering) 0;
+  preparation problems 0;
+- share of `источник не определён`; above 5 of 100, rerun with `--pairs` for one
+  file per round, author = its caption;
+- Word's own PDF with the changes shown, a few pages rendered to `pages/` —
+  **look at them** before sending.
+
+`<name>_changes.csv` lists every change with its caption and how it was decided:
+use it for a spot check of captions against the round notes. One citation style
+for all versions (author-date by default): with numbered citations every number
+after a new reference would show as a change. Needs Microsoft Word (Windows,
+`pywin32`), `python-docx`, `lxml`; `latexmk` only for versions without an `.aux`.
+Tests: `python test_compare_rounds.py` (the Word part is skipped, with the reason,
+where Word is absent).
 
 ## Requirements
 

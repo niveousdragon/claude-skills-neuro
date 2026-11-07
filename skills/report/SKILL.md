@@ -42,6 +42,8 @@ What stays out:
 - **Numbers not needed for the decision.** Every number in the text answers "does the operator need it to decide or to trust the conclusion?"; if not, it goes to the fact sheet, not the PDF.
 - **The fact sheet itself.** It is a separate file beside the PDF (`facts.*`), never a section of the report.
 
+**A list of decisions, when the operator asks for one** (to go through a review's recommendations or proposed edits and mark each): it replaces the 3–5 pages. The decisive items, at most three, come first; the rest are numbered from important to minor. Each item stands on its own: what it is about in words (a code such as "M2" never stands alone), the place quoted, what was found, the draft old → new, the options and the recommendation. Nothing the operator decides on is left in another file.
+
 The operator's own principles (their `CLAUDE.md`: conclusion first, what is needed from them, plain fractions, no filler) apply to the report as written rules; if they define a report format, it overrides this one. Project names are fine; run ids and paths only in Файлы.
 
 **Agent report** — one `.md`, under about 1500 words not counting paths; its size is held by the line limits below, not by a word count:

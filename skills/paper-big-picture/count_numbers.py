@@ -8,8 +8,9 @@ Prints, for each \\section (and for captions separately): words, numbers, number
 
 What counts as a number: a quantity the reader is told. "0.28", "5{,}365", "p < 0.001",
 "27 of 29", "10^{-5}" (one number), "-0.07". Each number in a range or a list counts.
-A quantity in words counts like a digit: "a quarter of", "one in six", "nearly half"
-("majority", "first half" and "a third variable" do not).
+A quantity in words counts like a digit: "a quarter of", "one in six", "nearly half",
+"ten mice", "twenty-five sessions" ("majority", "first half", "a third variable", "the two
+methods", "two-photon" and a bare "one" do not).
 What does not count, because it names something rather than reports a value:
 - digits inside an identifier: F1, CA1, L2/3, S2, v1.2.2, R^2, F_1;
 - a number after a label: Fig. 2, Figure 3c, Table 1, Section 4, Eq. 5, Stage 1, Step 2,
@@ -33,6 +34,15 @@ VERBAL = [
     r"\b" + _W + r"\s+(?:[a-z-]+\s+)?(?:in|out\s+of)\s+" + _W + r"\b",
     r"(?<!first )(?<!second )(?<!last )(?<!other )\bhalf\s+of\b",
 ]
+_UNIT = r"(?:two|three|four|five|six|seven|eight|nine)"
+_CARD = (r"(?:zero|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|"
+         r"fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|"
+         r"(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:-" + _UNIT + r")?)")
+# A cardinal before a word ("ten mice", "two hundred cells"), after the patterns above.
+# Not "one" (a pronoun), not a hyphenated compound ("two-photon"), not a back-reference
+# ("the two methods").
+CARDINAL = (r"(?<!-)(?<!\bthe )(?<!\bthese )(?<!\bthose )(?<!\bboth )(?<!\ball )\b"
+            + _CARD + r"(?:\s+(?:hundred|thousand))?\b(?!-)(?=\s+[a-z])")
 
 
 def _drop_braced(text, command):
@@ -93,7 +103,7 @@ def count_numbers(text):
         r"\d+(?:st|nd|rd|th|s|ms|Hz|kHz|mm|cm|um|nm|min|h|d|x|fold|D)", m.group()) else m.group(), t)
     # a quantity in words is still a quantity: "a quarter", "one in six" must not
     # lower the count, or a pass can trade digits for words and look lighter
-    for pat in VERBAL:
+    for pat in VERBAL + [CARDINAL]:
         t = re.sub(pat, " 1 ", t, flags=re.IGNORECASE)
     # labels followed by numbers (and panel letters / ranges)
     t = re.sub(LABELS + r"\s*\.?\s*(?:Fig\.\s*|Figure\s*)?S?\d+(?:\.\d+)*[a-z]?"
