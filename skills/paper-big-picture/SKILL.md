@@ -21,7 +21,8 @@ Honesty has two channels and they do not mix:
 - **in the paper** — true claims about what was shown. The author decides what else enters.
 
 **Revision after review** (a camera-ready version, a register of promises to reviewers, a
-page limit, a co-author's edits): also read `references/revision.md` next to this file.
+page limit, a co-author's edits, a brief for another agent doing any of these): also read
+`references/revision.md` next to this file.
 
 ## Step 1. Closed-book pass (always first)
 

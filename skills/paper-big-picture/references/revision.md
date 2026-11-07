@@ -36,13 +36,20 @@ doubts go to the author.
   attached to every mention of the result.
 - **Checking the register asks "is it kept, and where"**, one place per promise; not "does
   it appear at every mention".
-- **A promise that would turn the abstract into a list of caveats**, or remove the main
-  claim or a true sentence of meaning, goes to the author as one question with both drafts.
-  The author may break a small promise rather than the paper.
+- **The abstract keeps the author's measure of caveats.** Count the clauses of the author's
+  last abstract that narrow, qualify or admit a weakness; the new abstract has at most one
+  more. A promise for the abstract enters it once, in its shortest literal words. Everything
+  else the register asks for there (a derived item, a caveat next to every mention, a list
+  of factors, "we do not attribute") goes to the Discussion. The file carries this short
+  abstract until the author answers; the author gets one question with the long draft
+  beside it. The same holds for a promise that would remove the main claim or a true
+  sentence of meaning. The author may break a small promise rather than the paper.
 - **Run `find_repeats.py`** (next to SKILL.md) on the main text. A phrase in three or more
   places is a finding: keep it where the reader needs it and point to it or shorten it
   elsewhere. A phrase in two places stays only if the author wrote it twice (an abstract
-  and an introduction often do).
+  and an introduction often do). The script sees only word-for-word repeats: the same claim
+  reworded in three places is the same finding, and rewording it to get under the script is
+  passing a check instead of serving the reader.
 - **In a reply to reviewers**, promise a concrete change in a concrete place ("Discussion,
   second paragraph: …"), never "throughout" or "in the abstract".
 
@@ -81,8 +88,24 @@ the rules, for example:
 - a number spelled out in words, or anything else done to pass a check rather than to
   serve the reader;
 - the author's sentence removed under a label that hides it;
+- a sentence of meaning the author wrote, removed or replaced because a promise or a
+  recommendation asks for it, including a promise the author made: a promise records what
+  the reviewer was told, not that the author no longer holds the sentence;
 - a default applied on a matter the author said was not decided yet;
 - a phrase repeated word for word in three places.
 
 Each one goes first in the report to the author, with the rule it breaks and what the
-brief said, whatever the brief said.
+brief said, whatever the brief said. Do not filter or soften this list: every item the
+fresh agent returns goes into the first part of the report. You may add a recommendation,
+but not move an item into an optional question. If no fresh agent can be started, run the
+list yourself as a separate last pass and say in the first lines of the report that the
+check was not independent.
+
+## Writing a brief for another agent
+
+A brief passes the author's rules on; it does not replace them. Do not call a register or
+a report "the main document": say that the author's text and rules come first. Mark which
+items are the author's decisions and which are your defaults or inferences. If the author
+said a matter is not decided yet, the brief says so in the author's words. Ask the
+executor to put every conflict between the brief and the author's rules first in its
+report.
