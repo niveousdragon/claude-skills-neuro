@@ -1,6 +1,6 @@
 ---
 name: paper-claim-audit
-description: Use when a manuscript, preprint, thesis chapter or revision must be checked against its own sources before submission or resubmission - numbers in the text against scripts and output files, figure descriptions against the figures and data, Methods against the code, mentions of the same result against each other (Supplementary Information included), comparisons with other methods for equal terms, cited theorems against the cited work, and results left unexplained. Also when the user says "сверь статью с данными", "проверь числа в статье", "откуда это число", "проверь перед подачей", "аудит рукописи", "сходятся ли текст и рисунки", "можно ли подавать", "что из находок критично".
+description: Use when a manuscript, preprint, thesis chapter or revision must be checked against its own sources before submission or resubmission - numbers in the text against scripts and output files, figure descriptions against the figures and data, Methods against the code, mentions of the same result against each other (Supplementary Information included), comparisons with other methods for equal terms, cited theorems against the cited work, whether each citation supports the sentence it stands in, and results left unexplained. Also when the user says "сверь статью с данными", "проверь числа в статье", "откуда это число", "проверь перед подачей", "аудит рукописи", "сходятся ли текст и рисунки", "можно ли подавать", "что из находок критично", "уместны ли ссылки", "проверь ссылки".
 ---
 
 # Paper claim audit: every claim against its source, effort fixed in advance
@@ -36,8 +36,8 @@ and its limit of three: every CRITICAL is shown, and of the HIGH three are expla
      Supplementary Information.
 4. **Know which whole-paper checks are due.** Keep a log in the project: each whole-paper
    check (agreement of Abstract, Results, Discussion, captions and SI; Methods against code
-   and recording; comparisons; cited results; unexplained results; journal requirements),
-   the version it ran on, the date, where its report is. A check is due again once the
+   and recording; comparisons; cited results; every citation; unexplained results; journal
+   requirements), the version it ran on, the date, where its report is. A check is due again once the
    base of the paper has changed since (a recompute, a redrawn figure, a rewritten
    section): checks of the changed places in each pass do not see drift between sections.
    Before a long audit, show the user the checks you will run and those you will not, one
@@ -98,6 +98,15 @@ sources against value, the conditions of the argument. What remains needs you:
   the cited work: the same quantity, the same sign convention, its conditions met where
   the paper uses it. A condition that cannot hold under the paper's own definitions is a
   finding.
+- **Every citation carries its sentence.** Each place a work is cited, main text and SI,
+  each key of a multi-key citation separately, is checked against the cited work's abstract
+  or text: confirms; partly (say what it does confirm); does not; cannot check (say what
+  was tried). Checking authors, year and DOI (bibliography-lockfile) does not answer this.
+  Typical failures: a citation left after the example it supported was cut; a model cited
+  for an observation; a sentence rewritten around a citation that no longer fits it. A
+  proposed replacement is a work found by the publisher's metadata and read. Removing or
+  replacing a citation is the author's decision, one numbered item each; the list of
+  references changes only through bibliography-lockfile.
 - **Unexplained results.** A fresh helper reads the whole text, SI included, and lists each
   result that departs from expectation, from another method or from another part of the
   paper with no cause stated near it. Each gets one of: the cause is stated elsewhere
@@ -188,6 +197,7 @@ and the last `check` report. Do not edit the manuscript or any file outside your
 | a recording's frame rate or duration checked against the code that assumed it | check it against the raw files' metadata or the protocol |
 | a comparison with another method checked for its numbers only | the table of settings on both sides; a null model that suits one side only is a difference |
 | a cited theorem taken as the Methods state it | read the cited work: quantity, sign, conditions |
+| references "checked" because authors, year and DOI match | each citation place against the cited work's abstract or text |
 | "every version was checked", because each pass checked what it changed | the log of whole-paper checks by version; due again after the base changed |
 | a ledger table kept beside the map | one ledger: the map |
 | a `check` finding reported without opening the source | verify it; the map can be wrong too |

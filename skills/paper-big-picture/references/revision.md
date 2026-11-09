@@ -25,6 +25,10 @@ reject the one they disagree with.
 - **What the agent decided without the author is labelled as the agent's** default, never as
   the author's decision. If the author has said a matter is not decided yet, edits on it
   wait until the author says to go ahead.
+- **A conditional decision of the author** ("remove it if it really is a repeat") is carried
+  out only after the condition is checked; the label says what the check found
+  (`агент, 05.11: повтор фразы из Methods, раздел 2.1 — снято`). If the condition does not
+  hold, the text stays and the author is told.
 
 ## Promises to reviewers
 

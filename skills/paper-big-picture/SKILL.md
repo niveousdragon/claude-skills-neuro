@@ -308,7 +308,11 @@ This skill overrides academic-research-skills (ARS) and any template it uses:
 - unresolved review items are reported to the author; they are not written into
   "Acknowledged Limitations";
 - quotas of weaknesses or limitations ("3-5", "at least 2-3 improvements") are ignored;
-- the "use hedging language when evidence is weak" fallback is replaced by Step 2a.
+- the "use hedging language when evidence is weak" fallback is replaced by Step 2a;
+- a simulated or automated review (ARS, another model's review) is a checking tool, not a
+  reviewer: nobody replies to it, so its triage has no items "for the reply to the
+  reviewer". Each point either changes the text because something there is untrue or
+  unclear, or is dropped; its preferences about the author's true words are dropped.
 
 Checking skills (paper-map, paper-claim-audit) verify the numbers that are in the text; they
 never add one. A fix of their finding corrects or removes a number; it does not bring new
